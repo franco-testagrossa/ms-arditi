@@ -8,7 +8,8 @@ object Dependencies {
     // Resolvers
     lazy val commonResolvers = Seq(
         Resolver sonatypeRepo "public",
-        Resolver typesafeRepo "releases"
+        Resolver typesafeRepo "releases",
+        Resolver.bintrayRepo("tanukkii007", "maven")
     )
 
     // Module
@@ -27,22 +28,40 @@ object Dependencies {
     }
     
     object Akka extends Module {
-        private lazy val akkaVersion = "2.5.21"
-        private def module(name: String) = "com.typesafe.akka" %% name % akkaVersion 
+        private lazy val akkaVersion = "2.5.23"
+        private lazy val akkaHttpVersion = "10.1.7"
+        private lazy val akkaManagementVersion = "1.0.0"
+
+        private def akkaModule(name: String) = "com.typesafe.akka" %% name % akkaVersion 
+        private def akkaHttpModule(name: String) = "com.typesafe.akka" %% name % akkaHttpVersion 
+        private def akkaManagmentModule(name: String) = "com.lightbend.akka.management" %% name % akkaManagementVersion 
         
         override def modules: Seq[ModuleID] =
-            module("akka-actor") :: 
-            module("akka-slf4j") :: 
-            module("akka-testkit") :: 
+            akkaModule("akka-cluster") :: 
+            akkaModule("akka-cluster-sharding") :: 
+            akkaModule("akka-cluster-tools") :: 
+            akkaModule("akka-remote") :: 
+            akkaModule("akka-slf4j") :: 
+            akkaModule("akka-discovery") :: 
+            akkaModule("akka-actor") :: 
+            akkaModule("akka-testkit") :: 
+            akkaManagmentModule("akka-management") :: 
+            akkaManagmentModule("akka-management-cluster-http") :: 
+            akkaManagmentModule("akka-management-cluster-bootstrap") :: 
+            akkaHttpModule("akka-http") ::
+            akkaHttpModule("akka-http-core") ::
+            "com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12" :: // SBR
             Nil
     }
     
     object Utils extends Module {
         private lazy val logbackVersion = "1.2.3"
+        private lazy val kryoVersion = "0.9.3"
         
         private lazy val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
+        private lazy val kryo = "com.twitter" %% "chill-akka" % kryoVersion
 
-        override def modules: Seq[ModuleID] = logback :: Nil
+        override def modules: Seq[ModuleID] = logback :: kryo :: Nil
     }
 
     // Projects

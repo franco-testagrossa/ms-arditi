@@ -6,21 +6,7 @@ import akka.actor.ActorLogging
 import akka.actor.ActorSystem
 import akka.actor.PoisonPill
 
-object ActorRunner extends App {
-  val system = ActorSystem("ms-arditi")
-  val actorRunner = system.actorOf(Props[ActorRunner], "actor-runner")
-
-  actorRunner ! "msg"
-  actorRunner ! "hey"
-  actorRunner ! PoisonPill
-
-  Thread.sleep(2000)
-  system.terminate()
-}
-
 class ActorRunner extends Actor with ActorLogging {
-  import ActorRunner._
-
   def cyan(txt: String): Unit = log.info(Console.CYAN + txt + Console.RESET)
 
   override def preStart(): Unit =

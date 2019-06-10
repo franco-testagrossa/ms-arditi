@@ -1,3 +1,8 @@
+# akka cluster on kubernetes cluster
+
+This repository demonstrates how to deploy akka cluster application on kubernetes. 
+To run minikube locally execute ./minikube.sh
+
 ## Basics
 Run `sbt` on the root folder. Once you are in there:
 - execute `reload` in any *project* to apply changes in *.sbt files
@@ -18,7 +23,7 @@ Run `sbt` on the root folder. Once you are in there:
 - execute `testc` to run the test coverage report process in the current *project*
 
 ### how to disable coverage in source code
-```
+```scala
 // $COVERAGE-OFF$Reason for disabling coverage
 // ...
 // $COVERAGE-ON$

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-arditi
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ms-arditi-cluster
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: ms-arditi-cluster
+    spec:
+      terminationGracePeriodSeconds: 30
+      restartPolicy: Always
+      serviceAccountName: ms-arditi-cluster
+      containers:
+        - image: softwaremill/ms-arditi-cluster-k8s:0.0.1-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          name: ms-arditi-cluster
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+          ports:
+            - name: remoting
+              containerPort: 2551
+            - name: api
+              containerPort: 8080
+            - name: management
+              containerPort: 8558
+          #health
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: management
+            initialDelaySeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: management
+            initialDelaySeconds: 30
+          #health
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "30"]

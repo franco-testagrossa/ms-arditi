@@ -15,7 +15,7 @@ lazy val app =
         .settings(name := "app")
         .settings(
             fork in run := true,
-            mainClass in (Compile, run) := Some("runner.ActorRunner"),
+            mainClass in (Compile, run) := Some("runner.Main"),
             addCommandAlias("app", "app/run")
         )
         .enablePlugins(ScoverageSbtPlugin)
@@ -56,6 +56,11 @@ lazy val root = (project in file("."))
                 | println(YELLOW + "Hello my friend," + RESET)
                 | println(GREEN + "please enjoy and have fun!" + RESET)
             """.stripMargin,
+    )
+    .enablePlugins(JavaServerAppPackaging, DockerPlugin)
+    .settings(
+        dockerBaseImage := "openjdk:8",
+        dockerUsername := Some("softwaremill")
     )
     .aggregate(app)
 
