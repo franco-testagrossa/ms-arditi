@@ -1,4 +1,6 @@
 # kubectl delete pods,deployments,services,daemonsets,replicasets --all
+# minikube stop
+# minikube delete
 
 minikube start
 eval $(minikube docker-env)

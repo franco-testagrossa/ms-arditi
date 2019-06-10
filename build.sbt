@@ -19,10 +19,11 @@ lazy val ms_arditi =
         )
         .enablePlugins(ScoverageSbtPlugin)
         .settings(
-            // coverageEnabled := true,
-            // coverageMinimum := 80,
-            // coverageFailOnMinimum := true,
-            addCommandAlias("testc", ";clean;coverage;test;coverageReport")
+            coverageMinimum := 1,
+            coverageFailOnMinimum := true,
+            addCommandAlias("testc", 
+                ";'set coverageEnabled := true';clean;coverage;test;coverageReport"
+            )
         )
         .settings(
             Test / parallelExecution := false,
@@ -31,8 +32,7 @@ lazy val ms_arditi =
         )
         .settings(
             triggeredMessage := Watched.clearWhenTriggered,
-            // autoStartServer := false,
-            // autoCompilerPlugins := true,
+            autoStartServer := false,
             shellPrompt := (_ => fancyPrompt(name.value))
         )
         .enablePlugins(JavaServerAppPackaging, DockerPlugin)

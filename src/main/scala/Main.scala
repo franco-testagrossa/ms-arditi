@@ -15,7 +15,7 @@ import scala.util.{ Failure, Success }
 object Main extends App {
 
   lazy val config = ConfigFactory.load()
-  implicit val system = ActorSystem("akka-simple-cluster")
+  implicit val system = ActorSystem("cluster-arditi")
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
   implicit val cluster = Cluster(system) // ??
