@@ -16,6 +16,7 @@ object Dependencies {
     trait Module {
         def modules: Seq[ModuleID]
     }
+
     object Test extends Module {
         private lazy val scalaTestVersion = "3.0.5"
         private lazy val scalaCheckVersion = "1.14.0"
@@ -43,6 +44,7 @@ object Dependencies {
             akkaModule("akka-remote") :: 
             akkaModule("akka-slf4j") :: 
             akkaModule("akka-discovery") :: 
+            akkaModule("akka-persistence") :: 
             akkaModule("akka-actor") :: 
             akkaModule("akka-testkit") :: 
             akkaManagmentModule("akka-management") :: 
