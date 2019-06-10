@@ -6,7 +6,7 @@ workflows:
   build-test-deploy:
     jobs:
       - sbt/test
-      - sbt/release
+      # - sbt/release
 
 # orbs:
 #   sbt: jcouyang/sbt@0.2.0
@@ -53,7 +53,7 @@ orbs:
               paths:
                 - ~/.ivy2
               key: v1-dependencies--{{ checksum "build.sbt" }}
-          - run: sbt coverage test:test coverageReport
+          - run: sbt clean coverage test coverageReport
           - store_test_results:
               path: target
           - codecov/upload:

@@ -39,9 +39,15 @@ lazy val app =
 
 lazy val root = (project in file("."))
     .settings(commonSettings)
+    .enablePlugins(ScoverageSbtPlugin)
+    .settings(
+        coverageEnabled := true,
+        coverageMinimum := 80,
+        coverageFailOnMinimum := true,
+        addCommandAlias("testc", ";clean;coverage;test;coverageReport")
+    )
     .settings(
         autoStartServer := false,
-        addCommandAlias("testc", ";clean;coverage;test;coverageAggregate"),
         shellPrompt := (_ => fancyPrompt(name.value)),
         initialCommands in console :=
             s"""| // TODO Add common imports

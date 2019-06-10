@@ -39,12 +39,10 @@ object Dependencies {
     
     object Utils extends Module {
         private lazy val logbackVersion = "1.2.3"
-        private lazy val playJsonVersion = "2.6.9"
         
         private lazy val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
-        private lazy val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-        override def modules: Seq[ModuleID] = logback :: playJson :: Nil
+        override def modules: Seq[ModuleID] = logback :: Nil
     }
 
     // Projects
