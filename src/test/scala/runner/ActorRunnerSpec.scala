@@ -17,6 +17,7 @@ class ActorRunnerSpec(_system: ActorSystem)
 
   override def afterAll: Unit = {
     system.terminate()
+    Thread.sleep(5000)
   }
 
   "An ActorRunner" should {

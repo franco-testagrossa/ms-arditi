@@ -9,7 +9,9 @@ object Dependencies {
     lazy val commonResolvers = Seq(
         Resolver sonatypeRepo "public",
         Resolver typesafeRepo "releases",
-        Resolver.bintrayRepo("tanukkii007", "maven")
+        Resolver.bintrayRepo("tanukkii007", "maven"),
+        // the library is available in Bintray repository
+        ("dnvriend" at "http://dl.bintray.com/dnvriend/maven")
     )
 
     // Module
@@ -26,6 +28,17 @@ object Dependencies {
         private lazy val scalaCheck = "org.scalacheck" %% "scalacheck" % scalaCheckVersion
         
         override def modules: Seq[ModuleID] = scalaTest :: scalaTic :: scalaCheck :: Nil
+    }
+
+    object TestDB extends Module {
+        private lazy val lvlDbVersion = "0.9"
+        private lazy val lvlDbJniVersion = "1.8"
+
+        private lazy val lvlDb = "org.iq80.leveldb" % "leveldb" % lvlDbVersion
+        private lazy val lvlDbJni = "org.fusesource.leveldbjni" % "leveldbjni-all" % lvlDbJniVersion
+        
+        override def modules: Seq[ModuleID] = 
+            ("com.github.dnvriend" %% "akka-persistence-inmemory" % "2.5.15.1") :: Nil
     }
     
     object Akka extends Module {
@@ -68,7 +81,7 @@ object Dependencies {
 
     // Projects
     lazy val mainDeps = Akka.modules ++ Utils.modules
-    lazy val testDeps = Test.modules
+    lazy val testDeps = Test.modules ++ TestDB.modules
 }
 
 trait Dependencies {

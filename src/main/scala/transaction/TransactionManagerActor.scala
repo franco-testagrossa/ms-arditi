@@ -5,32 +5,33 @@ import akka.persistence.{ AtLeastOnceDelivery, PersistentActor, SnapshotOffer }
 import account.AccountActor
 import domain.Account
 
-case class TransferMoney(transactionId: Long, from: Account, to: Account, amount: Long)
-
-sealed trait Event
-
-case class TransactionInitiated(transactionId: Long, from: Account, to: Account, amount: Long) extends Event
-
-case class MoneyFrozen(deliveryId: Long) extends Event
-
-case class FreezingMoneyFailed(deliveryId: Long, reason: String) extends Event
-
-case class MoneyAdded(deliveryId: Long) extends Event
-
-case class AddingMoneyFailed(deliveryId: Long, reason: String) extends Event
-
-case class TransactionFinished(deliveryId: Long) extends Event
-
-case class MoneyUnfrozen(deliveryId: Long) extends Event
-
 object TransactionManagerActor {
   def props(): Props = Props(classOf[TransactionManagerActor])
+
+  case class TransferMoney(transactionId: Long, from: Account, to: Account, amount: Long)
+
+  sealed trait Event
+
+  case class TransactionInitiated(transactionId: Long, from: Account, to: Account, amount: Long) extends Event
+
+  case class MoneyFrozen(deliveryId: Long) extends Event
+
+  case class FreezingMoneyFailed(deliveryId: Long, reason: String) extends Event
+
+  case class MoneyAdded(deliveryId: Long) extends Event
+
+  case class AddingMoneyFailed(deliveryId: Long, reason: String) extends Event
+
+  case class TransactionFinished(deliveryId: Long) extends Event
+
+  case class MoneyUnfrozen(deliveryId: Long) extends Event
+
 }
 
 class TransactionManagerActor
   extends PersistentActor with AtLeastOnceDelivery with ActorLogging {
 
-  override val persistenceId: String = self.path.name
+  import TransactionManagerActor._
 
   case class TrxnMgrState(
       transactionId:    Long                        = -1L,
@@ -53,9 +54,12 @@ class TransactionManagerActor
     }
   }
 
+  override val persistenceId: String = self.path.name
+
   var state = TrxnMgrState()
 
   def updateState(event: Event): Unit = {
+    // TODO state.from
     def fromActor = context.actorSelection(s"/user/${state.from}")
     def toActor = context.actorSelection(s"/user/${state.to}")
 
