@@ -13,19 +13,14 @@ class ActorRunnerSpec(_system: ActorSystem)
   with WordSpecLike
   with BeforeAndAfterAll {
 
-  def this() = this(ActorSystem("ActorRunnerSpec"))
-
-  override def afterAll: Unit = {
-    system.terminate()
-    Thread.sleep(5000)
-  }
+  def this() = this(utils.ClusterArditiSystem.system)
 
   "An ActorRunner" should {
     "return its path for every msg sent" in {
       val testProbe = TestProbe()
       val actorRunner = system.actorOf(Props[ActorRunner], "actor-runner")
       actorRunner.!("msg")(testProbe.ref)
-      val expectedResponse: String = "akka://ActorRunnerSpec/user/actor-runner"
+      val expectedResponse: String = "akka://ClusterArditi/user/actor-runner"
       testProbe.expectMsg(500 millis, expectedResponse)
     }
   }

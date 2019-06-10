@@ -58,6 +58,7 @@ object Dependencies {
             akkaModule("akka-slf4j") :: 
             akkaModule("akka-discovery") :: 
             akkaModule("akka-persistence") :: 
+            akkaModule("akka-persistence-query") :: 
             akkaModule("akka-actor") :: 
             akkaModule("akka-testkit") :: 
             akkaManagmentModule("akka-management") :: 

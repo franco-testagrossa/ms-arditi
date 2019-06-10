@@ -8,7 +8,6 @@ import scala.language.postfixOps
 import akka.actor.Props
 import account._
 import domain.Account
-import com.typesafe.config.ConfigFactory
 
 class TransactionManagerActorSpec(_system: ActorSystem)
   extends TestKit(_system)
@@ -18,12 +17,7 @@ class TransactionManagerActorSpec(_system: ActorSystem)
 
   import TransactionManagerActor._
 
-  def this() = this(ActorSystem("TransactionManagerActorSpec"))
-
-  override def afterAll: Unit = {
-    system.terminate()
-    Thread.sleep(5000)
-  }
+  def this() = this(utils.ClusterArditiSystem.system)
 
   "A TransactionManagerActorSpec" should {
     "demonstrate compensation in case of insufficient balance" in {
