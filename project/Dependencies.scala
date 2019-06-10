@@ -3,7 +3,7 @@ import sbt.Keys._
 
 object Dependencies {
     // Versions
-    private lazy val scalaVersion = "2.12.7"
+    private lazy val scalaVersion = "2.12.8"
 
     // Resolvers
     lazy val commonResolvers = Seq(

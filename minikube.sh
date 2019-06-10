@@ -1,4 +1,6 @@
-minikube start --vm-driver=virtualbox
+# kubectl delete pods,deployments,services,daemonsets,replicasets --all
+
+minikube start
 eval $(minikube docker-env)
 sbt docker:publishLocal
 

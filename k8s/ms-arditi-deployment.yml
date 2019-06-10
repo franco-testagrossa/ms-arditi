@@ -21,7 +21,7 @@ spec:
       restartPolicy: Always
       serviceAccountName: ms-arditi-cluster
       containers:
-        - image: softwaremill/ms-arditi-cluster-k8s:0.0.1-SNAPSHOT
+        - image: arditi/ms_arditi:1.0
           imagePullPolicy: IfNotPresent
           name: ms-arditi-cluster
           env:

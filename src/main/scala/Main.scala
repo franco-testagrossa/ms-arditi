@@ -26,7 +26,8 @@ object Main extends App {
   Http().bindAndHandle(
     complete(config.getString("application.api.hello-message")),
     config.getString("application.api.host"),
-    config.getInt("application.api.port"))
+    config.getInt("application.api.port")
+  )
 
   // exitSystemOnTerminate(system)
 

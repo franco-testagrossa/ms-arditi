@@ -16,7 +16,7 @@ class ActorRunnerSpec(_system: ActorSystem)
   def this() = this(ActorSystem("ActorRunnerSpec"))
 
   override def afterAll: Unit = {
-    shutdown(system)
+    system.terminate()
   }
 
   "An ActorRunner" should {
