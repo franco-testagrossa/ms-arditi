@@ -60,13 +60,19 @@ addCommandAlias("read_cassandra",   cassandraExperiment(lead = true,   1, role =
 addCommandAlias("write_cassandra",  cassandraExperiment(lead = false,  2, role = "write"))
 
 def cassandraExperiment(lead: Boolean, i: Int, role: String): String = 
-s"runMain sample.cqrs.CqrsApp 255$i" + commonFlags(lead, i) + s"-Dakka.cluster.roles.0=${role}-model"
+s"""runMain sample.cqrs.CqrsApp 255$i
+    | ${commonFlags(lead, i)}
+    | -Dakka.cluster.roles.0=${role}-model
+    | -Dakka.persistence.journal.plugin=cassandra-journal
+    | -Dakka.persistence.snapshot-store.plugin=cassandra-snapshot-store
+    |""".stripMargin
 
 def akkaStartup(lead: Boolean, i: Int): String = 
  "reStart " + commonFlags(lead, i)
 
 def commonFlags(lead: Boolean, i: Int): String = 
-s"""|
+s"""|  
+   |---
    |-Dapplication.api.host=127.0.0.$i
    |-Dapplication.api.port=8080
    |-Dakka.cluster.seed-nodes.0=akka://ClusterArditi@127.0.0.1:2551
