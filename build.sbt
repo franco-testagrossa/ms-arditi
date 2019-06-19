@@ -53,11 +53,20 @@ addCommandAlias("red_2_standing_by",   akkaStartup(lead = false, 2))
 addCommandAlias("red_3_standing_by",   akkaStartup(lead = false, 3)) 
 addCommandAlias("r0",   "red_1_standing_by") 
 addCommandAlias("r1",   "red_2_standing_by") 
-addCommandAlias("r2",   "red_3_standing_by") 
+addCommandAlias("r2",   "red_3_standing_by")
+
+addCommandAlias("start_cassandra", "runMain sample.cqrs.CqrsApp cassandra ")
+addCommandAlias("read_cassandra",   cassandraExperiment(lead = true,   1, role = "read"))
+addCommandAlias("write_cassandra",  cassandraExperiment(lead = false,  2, role = "write"))
+
+def cassandraExperiment(lead: Boolean, i: Int, role: String): String = 
+s"runMain sample.cqrs.CqrsApp 255$i" + commonFlags(lead, i) + s"-Dakka.cluster.roles.0=${role}-model"
 
 def akkaStartup(lead: Boolean, i: Int): String = 
-s"""|reStart
-   |---
+ "reStart " + commonFlags(lead, i)
+
+def commonFlags(lead: Boolean, i: Int): String = 
+s"""|
    |-Dapplication.api.host=127.0.0.$i
    |-Dapplication.api.port=8080
    |-Dakka.cluster.seed-nodes.0=akka://ClusterArditi@127.0.0.1:2551
@@ -66,7 +75,9 @@ s"""|reStart
    |-Dakka.management.http.hostname=127.0.0.$i
    |-Dakka.remote.artery.canonical.hostname=127.0.0.$i
    |""".stripMargin
+   
 
+   
 def fancyPrompt(projectName: String): String =
   s"""|
       |[info] Welcome to the ${cyan(projectName)} project!

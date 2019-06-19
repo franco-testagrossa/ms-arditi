@@ -45,11 +45,13 @@ object Dependencies {
         private lazy val akkaVersion = "2.5.23"
         private lazy val akkaHttpVersion = "10.1.7"
         private lazy val akkaManagementVersion = "1.0.0"
+        private lazy val AkkaPersistenceCassandraVersion = "0.93"
 
         private def akkaModule(name: String) = "com.typesafe.akka" %% name % akkaVersion 
         private def akkaHttpModule(name: String) = "com.typesafe.akka" %% name % akkaHttpVersion 
-        private def akkaManagmentModule(name: String) = "com.lightbend.akka.management" %% name % akkaManagementVersion 
-        
+        private def akkaManagmentModule(name: String) = "com.lightbend.akka.management" %% name % akkaManagementVersion
+        private def akkaPersistenceCassandraModule(name: String) = "com.typesafe.akka" %% name % AkkaPersistenceCassandraVersion
+
         override def modules: Seq[ModuleID] =
             akkaModule("akka-cluster") :: 
             akkaModule("akka-cluster-sharding") :: 
@@ -66,6 +68,8 @@ object Dependencies {
             akkaManagmentModule("akka-management-cluster-bootstrap") :: 
             akkaHttpModule("akka-http") ::
             akkaHttpModule("akka-http-core") ::
+            akkaPersistenceCassandraModule("akka-persistence-cassandra") ::
+            akkaPersistenceCassandraModule("akka-persistence-cassandra-launcher") ::
             "com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12" :: // SBR
             Nil
     }
