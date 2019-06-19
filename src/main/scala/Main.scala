@@ -1,5 +1,3 @@
-package com.softwaremill.akkaSimpleCluster
-
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.http.scaladsl.Http

@@ -1,14 +1,21 @@
 # akka cluster on kubernetes cluster
 
-This repository demonstrates how to deploy akka cluster application on kubernetes. 
-To run minikube locally execute ./minikube.sh
 
-## Basics
+# How to run
+### Local development
 Run `sbt` on the root folder. Once you are in there:
-- execute `reload` in any *project* to apply changes in *.sbt files
-- list the current projects using: `ls`
-- change to *project* using: `cd <project_name>`
+- execute `r0` to run the first Akka node
+Want another node?
+Run `sbt` on the root folder. Once you are in there:
+- execute `r1` to run the second Akka node
+Want to reload the code?
+ Press ENTER, UPARROW, ENTER on each of the opened consoles
 
+### Is this production ready?
+./minikube.sh
+
+-------------------------------------
+## Basics2
 ### sbt inside the root-project
 - execute `clean` to apply the command to all *sub projects*
 - execute `compile` to apply the command to all *sub projects*

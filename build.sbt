@@ -46,10 +46,30 @@ addCommandAlias("cd", "project")
 addCommandAlias("ls", "projects")
 addCommandAlias("to", "testOnly *")
 
+addCommandAlias("I_demand_an_explanation_for_the_naming_convention_of_the_command_aliases",  
+                """eval "Star wars references https://youtu.be/6v5VahaEL7s" """)
+addCommandAlias("red_1_standing_by",   akkaStartup(lead = true, 1)) 
+addCommandAlias("red_2_standing_by",   akkaStartup(lead = false, 2)) 
+addCommandAlias("red_3_standing_by",   akkaStartup(lead = false, 3)) 
+addCommandAlias("r0",   "red_1_standing_by") 
+addCommandAlias("r1",   "red_2_standing_by") 
+addCommandAlias("r2",   "red_3_standing_by") 
+
+def akkaStartup(lead: Boolean, i: Int): String = 
+s"""|reStart
+   |---
+   |-Dapplication.api.host=127.0.0.$i
+   |-Dapplication.api.port=8080
+   |-Dakka.cluster.seed-nodes.0=akka://ClusterArditi@127.0.0.1:2551
+   |-Dakka.cluster.roles.0=${if (lead) "static" else "dynamic"}
+   |-Dakka.discovery.method=config
+   |-Dakka.management.http.hostname=127.0.0.$i
+   |-Dakka.remote.artery.canonical.hostname=127.0.0.$i
+   |""".stripMargin
+
 def fancyPrompt(projectName: String): String =
   s"""|
       |[info] Welcome to the ${cyan(projectName)} project!
       |sbt> """.stripMargin
 
 def cyan(projectName: String): String = CYAN + projectName + RESET
-
