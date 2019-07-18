@@ -1,23 +1,19 @@
-package transaction
+package sagas.transaction
 
-import org.scalatest.{ BeforeAndAfterAll, WordSpecLike, Matchers }
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import akka.actor.ActorSystem
-import akka.testkit.{ TestKit, TestProbe }
+import akka.testkit.{TestKit, TestProbe}
+
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import akka.actor.Props
-import account._
-import domain.Account
+import sagas.account._
+import sagas.domain.Account
+import sagas.utils.{ClusterArditiSpec, ClusterArditiSystem}
 
-class TransactionManagerActorSpec(_system: ActorSystem)
-  extends TestKit(_system)
-  with Matchers
-  with WordSpecLike
-  with BeforeAndAfterAll {
+class TransactionManagerActorSpec extends ClusterArditiSpec {
 
   import TransactionManagerActor._
-
-  def this() = this(utils.ClusterArditiSystem.system)
 
   "A TransactionManagerActorSpec" should {
     "demonstrate compensation in case of insufficient balance" in {
@@ -31,7 +27,7 @@ class TransactionManagerActorSpec(_system: ActorSystem)
       Thread.sleep(5000)
       diana.!("print")(testProbe.ref)
       arthur.!("print")(testProbe.ref)
-      val expectedResponse: String = "akka://ActorRunnerSpec/user/actor-runner"
+      val expectedResponse: String = "akka://ActorRunnerSpec/user/actor-sagas.runner"
       // testProbe.expectMsg(500 millis, expectedResponse)
     }
     "demonstrate compensation in case of receiver account is inactive" in {
@@ -46,7 +42,7 @@ class TransactionManagerActorSpec(_system: ActorSystem)
       barry.!("print")(testProbe.ref)
       victor.!("print")(testProbe.ref)
 
-      val expectedResponse: String = "akka://ActorRunnerSpec/user/actor-runner"
+      val expectedResponse: String = "akka://ActorRunnerSpec/user/actor-sagas.runner"
       // testProbe.expectMsg(500 millis, expectedResponse)
     }
   }
