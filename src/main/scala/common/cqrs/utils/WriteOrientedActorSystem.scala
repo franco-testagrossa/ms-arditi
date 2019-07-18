@@ -1,19 +1,18 @@
-package cqrs.utils
+package common.cqrs.utils
 
 import akka.actor.ActorSystem
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 
-
-trait WriteOrientedActorSystem extends ActorSystemFactory {
+object WriteOrientedActorSystem extends ActorSystemFactory {
   val port = 2552
   val role = "write"
   val lead = false
   val index = 2
 
   override def createActorSystem(
-                       name: String = "ClusterArditi",
-                       config: Config = ConfigFactory.parseString(
-                         s"""akka.remote.artery.canonical.port = $port
+      name: String = "ClusterArditi",
+      config: Config = ConfigFactory.parseString(
+        s"""akka.remote.artery.canonical.port = $port
       akka.remote.netty.tcp.port = $port
       akka.cluster.roles.0=${role}-model
       akka.cluster.roles.1=${if (lead) "static" else "dynamic"}
@@ -25,6 +24,7 @@ trait WriteOrientedActorSystem extends ActorSystemFactory {
       akka.discovery.method=config
       akka.management.http.hostname=127.0.0.$index
       akka.remote.artery.canonical.hostname=127.0.0.$index
-   """).withFallback(ConfigFactory.load("application.conf"))
+   """
+      ).withFallback(ConfigFactory.load("application.conf"))
   ): ActorSystem = ActorSystem(name, config)
 }

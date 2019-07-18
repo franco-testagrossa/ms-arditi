@@ -1,4 +1,4 @@
-package cqrs
+package common.cqrs
 
 import akka.actor.{ ActorRef, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props }
 import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }

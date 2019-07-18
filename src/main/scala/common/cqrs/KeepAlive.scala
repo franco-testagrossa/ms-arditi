@@ -1,4 +1,4 @@
-package cqrs
+package common.cqrs
 
 import akka.actor.{ Actor, ActorLogging, Props, Timers }
 import akka.cluster.sharding.ClusterSharding

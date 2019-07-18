@@ -1,4 +1,4 @@
-package cqrs
+package common.cqrs
 
 import scala.concurrent.Future
 

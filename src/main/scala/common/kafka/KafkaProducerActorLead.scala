@@ -9,7 +9,11 @@ import org.apache.kafka.common.serialization.StringSerializer
 
 import scala.concurrent.ExecutionContextExecutor
 
-object KafkaProducerDefaults extends WriteOrientedActorSystem {
+object KafkaProducerActorLead extends WriteOrientedActorSystem {
+
+  override val port = 2551
+  override val lead = false
+  override val index = 1
 
   val system: actor.ActorSystem = createActorSystem()
 

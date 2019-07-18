@@ -2,16 +2,16 @@ package common.kafka
 
 import akka.actor
 import akka.kafka.ProducerSettings
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.ConfigFactory
 import common.cqrs.utils.WriteOrientedActorSystem
 import org.apache.kafka.common.serialization.StringSerializer
 
 import scala.concurrent.ExecutionContextExecutor
 
-object KafkaProducerActorLead extends WriteOrientedActorSystem {
+object KafkaProducerActorAsWorker extends WriteOrientedActorSystem {
 
-  override val lead: Boolean = true
+  override val lead: Boolean = false
 
   val system: actor.ActorSystem = createActorSystem()
 

@@ -1,4 +1,4 @@
-package cqrs
+package common.cqrs
 
 import akka.actor.{ ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
 import com.typesafe.sslconfig.util.EnrichedConfig

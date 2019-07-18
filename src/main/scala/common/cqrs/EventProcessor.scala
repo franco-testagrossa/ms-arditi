@@ -1,4 +1,4 @@
-package cqrs
+package common.cqrs
 
 import akka.Done
 import akka.actor.{ Actor, ActorLogging, Props }
@@ -10,7 +10,7 @@ import com.datastax.driver.core.{ PreparedStatement, Row }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
-import cqrs.EventProcessorWrapper._
+import common.cqrs.EventProcessorWrapper._
 
 object EventProcessor {
   def props: Props =
