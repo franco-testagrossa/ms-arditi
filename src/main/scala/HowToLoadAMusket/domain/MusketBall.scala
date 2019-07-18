@@ -1,5 +1,3 @@
 package HowToLoadAMusket.domain
 
-class Bullet {
-
-}
+case class MusketBall()

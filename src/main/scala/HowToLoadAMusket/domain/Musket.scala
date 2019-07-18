@@ -1,5 +1,3 @@
 package HowToLoadAMusket.domain
 
-trait Musket {
-
-}
+sealed trait Musket

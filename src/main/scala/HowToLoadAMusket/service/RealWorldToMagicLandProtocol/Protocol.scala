@@ -1,4 +1,4 @@
-package HowToLoadAMusket.service.Protocol
+package HowToLoadAMusket.service.RealWorldToMagicLandProtocol
 
 import HowToLoadAMusket.service.MagicTypedLand.ActorPersistance.MusketEntity.Commands.Command
 

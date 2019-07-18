@@ -1,4 +1,4 @@
-package HowToLoadAMusket.service.ActorPersistance
+package HowToLoadAMusket.service.MagicTypedLand.ActorPersistance
 
 import HowToLoadAMusket.api.MusketApi
 import HowToLoadAMusket.domain.MusketState._
