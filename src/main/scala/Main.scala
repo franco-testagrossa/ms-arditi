@@ -7,7 +7,6 @@ import akka.management.cluster.bootstrap.ClusterBootstrap
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 
-import scala.concurrent.ExecutionContextExecutor
 import scala.util.{ Failure, Success }
 
 object Main extends App {
@@ -16,7 +15,6 @@ object Main extends App {
   implicit val system = ActorSystem("ClusterArditi")
   implicit val materializer = ActorMaterializer()
   implicit val executionContext = system.dispatcher
-  implicit val cluster = Cluster(system) // ??
 
   AkkaManagement(system).start()
   ClusterBootstrap(system).start()
