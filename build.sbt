@@ -55,12 +55,12 @@ addCommandAlias("r0",   "red_1_standing_by")
 addCommandAlias("r1",   "red_2_standing_by") 
 addCommandAlias("r2",   "red_3_standing_by")
 
-addCommandAlias("start_cassandra", "runMain sample.cqrs.CqrsApp cassandra ")
+addCommandAlias("start_cassandra", "runMain scaladsl.CQRS.App cassandra ")
 addCommandAlias("read_cassandra",   cassandraExperiment(lead = true,   1, role = "read"))
 addCommandAlias("write_cassandra",  cassandraExperiment(lead = false,  2, role = "write"))
 
 def cassandraExperiment(lead: Boolean, i: Int, role: String): String = 
-s"""runMain sample.cqrs.CqrsApp 255$i
+s"""runMain scaladsl.CQRS.App 255$i
     | ${commonFlags(lead, i)}
     | -Dakka.cluster.roles.0=${role}-model
     | -Dakka.persistence.journal.plugin=cassandra-journal
@@ -90,3 +90,12 @@ def fancyPrompt(projectName: String): String =
       |sbt> """.stripMargin
 
 def cyan(projectName: String): String = CYAN + projectName + RESET
+
+libraryDependencies += "com.typesafe.akka" %% "akka-stream-kafka" % "1.0-M1"
+libraryDependencies += "com.typesafe.akka" %% "akka-stream-typed" % "2.5.23"
+libraryDependencies += "com.typesafe.akka" %% "akka-cluster-typed" % "2.5.23"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor-typed" % "2.5.23"
+libraryDependencies += "com.typesafe.akka" %% "akka-typed" % "2.5.6"
+libraryDependencies += "com.typesafe.akka" %% "akka-cluster-sharding-typed" % "2.5.23"
+
+
