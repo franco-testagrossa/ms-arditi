@@ -26,6 +26,27 @@ object TransactionManagerActor {
 
   case class MoneyUnfrozen(deliveryId: Long) extends Event
 
+  // State
+  case class TrxnMgrState(
+                           deliverySnapshot: AtLeastOnceDeliverySnapshot,
+                           transactionId:    Long                        = -1L,
+                           from:             Account                     = "",
+                           to:               Account                     = "",
+                           amount:           Long                        = 0L,
+                           failureReason:    String                      = ""
+                         ) {
+
+    def updated(event: Event): TrxnMgrState = event match {
+      case TransactionInitiated(trxdId, from, to, amount) =>
+        TrxnMgrState(deliverySnapshot, trxdId, from, to, amount, "")
+
+      case FreezingMoneyFailed(_, reason) => copy(deliverySnapshot = deliverySnapshot, failureReason = reason)
+
+      case AddingMoneyFailed(_, reason) => copy(deliverySnapshot = deliverySnapshot, failureReason = reason)
+
+      case _ => copy(deliverySnapshot = deliverySnapshot)
+    }
+  }
 }
 
 class TransactionManagerActor
@@ -33,30 +54,11 @@ class TransactionManagerActor
 
   import TransactionManagerActor._
 
-  case class TrxnMgrState(
-      transactionId:    Long                        = -1L,
-      from:             Account                     = "",
-      to:               Account                     = "",
-      amount:           Long                        = 0L,
-      failureReason:    String                      = "",
-      deliverySnapshot: AtLeastOnceDeliverySnapshot = getDeliverySnapshot
-  ) {
+  def _transaction: String = self.path.name
 
-    def updated(event: Event): TrxnMgrState = event match {
-      case TransactionInitiated(trxdId, from, to, amount) =>
-        TrxnMgrState(trxdId, from, to, amount, "", getDeliverySnapshot)
+  override val persistenceId: String = getClass.getSimpleName + "-" + _transaction
 
-      case FreezingMoneyFailed(_, reason) => copy(failureReason    = reason, deliverySnapshot = getDeliverySnapshot)
-
-      case AddingMoneyFailed(_, reason) => copy(failureReason    = reason, deliverySnapshot = getDeliverySnapshot)
-
-      case _ => copy(deliverySnapshot = getDeliverySnapshot)
-    }
-  }
-
-  override val persistenceId: String = self.path.name
-
-  var state = TrxnMgrState()
+  var state = TrxnMgrState(getDeliverySnapshot)
 
   def updateState(event: Event): Unit = {
     // TODO state.from

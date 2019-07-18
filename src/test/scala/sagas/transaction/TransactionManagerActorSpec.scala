@@ -15,7 +15,7 @@ class TransactionManagerActorSpec extends ClusterArditiSpec {
 
   import TransactionManagerActor._
 
-  "A TransactionManagerActorSpec" should {
+  "The Saga TransactionManagerActor" should {
     "demonstrate compensation in case of insufficient balance" in {
       val testProbe = TestProbe()
       val diana = system.actorOf(AccountActor.props(active = true, balance = 500), "Diana")

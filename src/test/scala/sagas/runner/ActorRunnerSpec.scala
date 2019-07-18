@@ -1,6 +1,6 @@
 package sagas.runner
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import sagas.utils.{ClusterArditiSpec, ClusterArditiSystem}
