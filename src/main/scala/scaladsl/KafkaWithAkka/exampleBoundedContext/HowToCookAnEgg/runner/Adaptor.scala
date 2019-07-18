@@ -1,4 +1,4 @@
-package scaladsl.KafkaWithAkka.HowToCookAnEgg.runner
+package scaladsl.KafkaWithAkka.exampleBoundedContext.HowToCookAnEgg.runner
 
 import akka.actor.Actor
 import eggs.domain.EggStyle

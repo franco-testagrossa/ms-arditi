@@ -1,4 +1,4 @@
-package KafkaWithAkka
+package scaladsl.KafkaWithAkka
 
 import akka.Done
 import akka.actor.ActorSystem
@@ -14,17 +14,15 @@ import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.util.{ Failure, Success }
 
 object ProducerApp extends App {
-  implicit val system: ActorSystem = ActorSystem("producer-sys")
-  implicit val mat: Materializer = ActorMaterializer()
-  implicit val ec: ExecutionContextExecutor = system.dispatcher
+  import common.kafka.KafkaProducerActorAsWorker._
 
-  val config = ConfigFactory.load()
-  val producerConfig = config.getConfig("akka.kafka.producer")
-  val producerSettings = ProducerSettings(producerConfig, new StringSerializer, new StringSerializer)
-
+  val value = "cook me an egg now! ... hello from Kafka Producer, my man!"
   val produce: Future[Done] =
-    Source(1 to 100)
-      .map(value => new ProducerRecord[String, String]("test", value.toString))
+    Source(1 to 5)
+      .map(index => {
+        println(s"Publishing ${value} to topic test")
+        new ProducerRecord[String, String]("test", value)
+      })
       .runWith(Producer.plainSink(producerSettings))
 
   produce onComplete {

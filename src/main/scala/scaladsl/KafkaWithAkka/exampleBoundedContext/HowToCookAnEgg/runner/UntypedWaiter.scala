@@ -1,6 +1,6 @@
-package scaladsl.KafkaWithAkka.HowToCookAnEgg.runner
+package scaladsl.KafkaWithAkka.exampleBoundedContext.HowToCookAnEgg.runner
 
-import scaladsl.KafkaWithAkka.HowToCookAnEgg.runner.TypedWaiter.{ WaiterTalk, prepareEgg }
+import scaladsl.KafkaWithAkka.exampleBoundedContext.HowToCookAnEgg.runner.TypedWaiter.{ WaiterTalk, prepareEgg }
 import akka.actor.{ Actor, ActorLogging }
 import eggs.api.FoodPrepApi
 import eggs.domain.EggStyle

@@ -1,8 +1,8 @@
-package scaladsl.CQRS
+package scaladsl.KafkaWithAkka
 
-import common.cqrs.utils.cassandra.Startup
+import common.kafka.utils.Startup
 
-object Cassandra extends App {
+object Kafka extends App {
 
   Startup.start()
 

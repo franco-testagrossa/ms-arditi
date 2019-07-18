@@ -1,8 +1,9 @@
-package scaladsl.example
+package scaladsl.CQRS.example
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.{ ActorLogging, Props }
 import akka.persistence.PersistentActor
 import akka.persistence.journal.Tagged
+import common.cqrs.Settings
 
 import scala.math.abs
 
