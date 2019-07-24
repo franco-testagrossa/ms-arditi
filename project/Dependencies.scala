@@ -73,6 +73,17 @@ object Dependencies {
             "com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12" :: // SBR
             Nil
     }
+
+    object AkkaPersistence extends Module {
+        private lazy val rxmongoVersion = "2.2.0"
+        private lazy val reactiveMongoVersion = "0.16.0"
+
+        private lazy val rxmongo = "com.github.scullxbones" %% "akka-persistence-mongo-rxmongo" % rxmongoVersion
+        private lazy val reactiveMongo = "org.reactivemongo" %% "reactivemongo" % reactiveMongoVersion
+        private lazy val reactiveMongoAkkaStream = "org.reactivemongo" %% "reactivemongo-akkastream" % reactiveMongoVersion
+        
+        override def modules: Seq[sbt.ModuleID] = rxmongo :: reactiveMongo :: reactiveMongoAkkaStream :: Nil
+    }
     
     object ScalaZ extends Module {
 
