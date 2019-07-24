@@ -75,7 +75,7 @@ object Dependencies {
     }
 
     object AkkaPersistence extends Module {
-        private lazy val rxmongoVersion = "2.2.0"
+        private lazy val rxmongoVersion = "2.2.0" // "2.2.9"
         private lazy val reactiveMongoVersion = "0.16.0"
 
         private lazy val rxmongo = "com.github.scullxbones" %% "akka-persistence-mongo-rxmongo" % rxmongoVersion
