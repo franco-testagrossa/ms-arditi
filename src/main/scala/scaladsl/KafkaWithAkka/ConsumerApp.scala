@@ -1,5 +1,6 @@
 package scaladsl.KafkaWithAkka
 
+/*
 import akka.actor.Props
 import akka.kafka.scaladsl.Consumer
 import akka.kafka.{ Subscriptions }
@@ -34,3 +35,4 @@ object ConsumerApp extends App {
   }
 
 }
+*/

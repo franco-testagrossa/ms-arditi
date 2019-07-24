@@ -100,11 +100,13 @@ def fancyPrompt(projectName: String): String =
 
 def cyan(projectName: String): String = CYAN + projectName + RESET
 
+// Experimental
 libraryDependencies += "com.typesafe.akka" %% "akka-stream-kafka" % "1.0-M1"
 libraryDependencies += "com.typesafe.akka" %% "akka-stream-typed" % "2.5.23"
 libraryDependencies += "com.typesafe.akka" %% "akka-cluster-typed" % "2.5.23"
 libraryDependencies += "com.typesafe.akka" %% "akka-actor-typed" % "2.5.23"
 libraryDependencies += "com.typesafe.akka" %% "akka-typed" % "2.5.6"
 libraryDependencies += "com.typesafe.akka" %% "akka-cluster-sharding-typed" % "2.5.23"
+
 
 

@@ -15,7 +15,7 @@ trait ActorSystemFactory {
 // honor composition over inheritance
 object ActorSystemFactory {
 
-  case class ActorSystemMember()
+  case class ActorSystemMembers(lead: ActorSystem)
   val actorSystems = Map.empty[String, ActorSystem]
 
   def createConfig(role: String, index: Int) = {
@@ -38,4 +38,5 @@ object ActorSystemFactory {
 
   }
 
+  def write(name: String) = ???
 }

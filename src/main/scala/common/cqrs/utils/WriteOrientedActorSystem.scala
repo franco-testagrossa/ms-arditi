@@ -9,10 +9,10 @@ trait WriteOrientedActorSystem extends ActorSystemFactory {
   override val lead = false
   override val index = 2
 
-  override def createActorSystem(
-    name: String = "ClusterArditi",
-    config: Config = ConfigFactory.parseString(
-      s"""akka.remote.artery.canonical.port = $port
+  def createActorSystem(
+      name: String = "ClusterArditi",
+      config: Config = ConfigFactory.parseString(
+        s"""akka.remote.artery.canonical.port = $port
       akka.remote.netty.tcp.port = $port
       akka.cluster.roles.0=${role}-model
       akka.cluster.roles.1=${if (lead) "static" else "dynamic"}
