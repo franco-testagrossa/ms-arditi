@@ -4,7 +4,7 @@ import reactivemongo.bson.{BSONDocumentHandler, Macros}
 import sagas.account.AccountActor.AmountIncreased
 import sagas.akka.persistence.adapters.BSONEventAdapter
 
-class AmountIncreasedEventAdapter extends BSONEventAdapter[AmountIncreased] {
+object AmountIncreasedEventAdapter extends BSONEventAdapter[AmountIncreased] {
 
   val handler: BSONDocumentHandler[AmountIncreased] =
     Macros.handler[AmountIncreased]
