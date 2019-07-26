@@ -34,21 +34,20 @@ class TransactionManagerActor
   import TransactionManagerActor._
 
   case class TrxnMgrState(
-      transactionId:    Long                        = -1L,
-      from:             Account                     = "",
-      to:               Account                     = "",
-      amount:           Long                        = 0L,
-      failureReason:    String                      = "",
-      deliverySnapshot: AtLeastOnceDeliverySnapshot = getDeliverySnapshot
-  ) {
+    transactionId: Long = -1L,
+    from: Account = "",
+    to: Account = "",
+    amount: Long = 0L,
+    failureReason: String = "",
+    deliverySnapshot: AtLeastOnceDeliverySnapshot = getDeliverySnapshot) {
 
     def updated(event: Event): TrxnMgrState = event match {
       case TransactionInitiated(trxdId, from, to, amount) =>
         TrxnMgrState(trxdId, from, to, amount, "", getDeliverySnapshot)
 
-      case FreezingMoneyFailed(_, reason) => copy(failureReason    = reason, deliverySnapshot = getDeliverySnapshot)
+      case FreezingMoneyFailed(_, reason) => copy(failureReason = reason, deliverySnapshot = getDeliverySnapshot)
 
-      case AddingMoneyFailed(_, reason) => copy(failureReason    = reason, deliverySnapshot = getDeliverySnapshot)
+      case AddingMoneyFailed(_, reason) => copy(failureReason = reason, deliverySnapshot = getDeliverySnapshot)
 
       case _ => copy(deliverySnapshot = getDeliverySnapshot)
     }

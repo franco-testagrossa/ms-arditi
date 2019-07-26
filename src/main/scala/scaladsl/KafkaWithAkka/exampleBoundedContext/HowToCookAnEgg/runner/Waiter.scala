@@ -4,8 +4,7 @@ trait Waiter {
 
   def WaiterTalk(eggStyle: String) =
     Array(
-      "", "I hope you enjoy the egg.", "Here in this place we serve the best eggs in the country. We are known for this.", "", "Here is the egg as you requested, sire.", s"... ${eggStyle}?"
-    )
+      "", "I hope you enjoy the egg.", "Here in this place we serve the best eggs in the country. We are known for this.", "", "Here is the egg as you requested, sire.", s"... ${eggStyle}?")
       .map(line => Console.YELLOW + line + Console.RESET)
       .mkString("\n")
       .stripMargin

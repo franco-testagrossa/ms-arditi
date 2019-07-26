@@ -15,8 +15,7 @@ object Startup {
       databaseDirectory,
       CassandraLauncher.DefaultTestConfigResource,
       clean = true,
-      port  = 9042
-    )
+      port = 9042)
     println("Started Cassandra, press Ctrl + C to kill")
     new CountDownLatch(1).await()
     Future.successful(())

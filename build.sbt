@@ -17,6 +17,15 @@ lazy val ms_arditi =
             mainClass in (Compile, run) := Some("Main"),
             addCommandAlias("arditi", "run")
         )
+        .settings(
+          scalacOptions ++= Seq(
+            "-feature",
+            "-unchecked",
+            "-language:higherKinds",
+            "-language:postfixOps",
+            "-deprecation"
+          )
+        )
         .enablePlugins(ScoverageSbtPlugin)
         .settings(
             coverageMinimum := 1,

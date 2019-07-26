@@ -10,10 +10,9 @@ import scala.util.{ Failure, Success }
 import scaladsl.KafkaWithAkka.exampleBoundedContext.HowToCookAnEgg.runner.{ TypedWaiter, UntypedWaiter }
 import akka.{ Done }
 import eggs.domain.EggStyle.HardBoiled
-import common.kafka.KafkaConsumerDefaults
 
 object ConsumerApp extends App {
-  import KafkaConsumerDefaults._
+  import common.kafka.KafKaConsumerDefaults._
   import akka.actor.typed.scaladsl.adapter._
 
   val typedActorExample = system.spawn(TypedWaiter.behavior, "TypedWaiter")

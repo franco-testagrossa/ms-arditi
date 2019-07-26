@@ -74,18 +74,29 @@ object Dependencies {
             Nil
     }
     
+    object ScalaZ extends Module {
+
+        override def modules: Seq[ModuleID] = Seq(
+             "org.scalaz" %% "scalaz-core" % "7.3.0-M30",
+             "org.scalaz" %% "scalaz-concurrent" % "7.3.0-M27",
+             "org.scalaz" %% "scalaz-zio" % "1.0-RC5"
+        )
+    }
+    
     object Utils extends Module {
         private lazy val logbackVersion = "1.2.3"
         private lazy val kryoVersion = "0.9.3"
         
         private lazy val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
-        private lazy val kryo = "com.twitter" %% "chill-akka" % kryoVersion
+        private lazy val kryo = "com.twitter" %% "chill-akka"  % kryoVersion
+        private lazy val joda1=  "joda-time"  % "joda-time"    % "2.9.1"
+        private lazy val joda2 =  "org.joda"   % "joda-convert" % "1.8.1"
 
-        override def modules: Seq[ModuleID] = logback :: kryo :: Nil
+        override def modules: Seq[ModuleID] = logback :: kryo :: joda1 :: joda2 :: Nil
     }
 
     // Projects
-    lazy val mainDeps = Akka.modules ++ Utils.modules
+    lazy val mainDeps = Akka.modules ++ ScalaZ.modules ++ Utils.modules ++ TestDB.modules
     lazy val testDeps = Test.modules ++ TestDB.modules
 }
 

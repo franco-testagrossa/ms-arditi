@@ -29,7 +29,7 @@ trait CommonScalac {
       "-Xlint:poly-implicit-overload",     // Parameterized overloaded implicit methods are not visible as view bounds.
       "-Xlint:private-shadow",             // A private field (or class parameter) shadows a superclass field.
       "-Xlint:stars-align",                // Pattern sequence wildcard must align with sequence component.
-      "-Xlint:type-parameter-shadow",      // A local type parameter shadows a type already in scope.
+      //"-Xlint:type-parameter-shadow",      // A local type parameter shadows a type already in scope.
       "-Xlint:unsound-match",              // Pattern match may not be typesafe.
       "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
       "-Ypartial-unification",             // Enable partial unification in type constructor inference

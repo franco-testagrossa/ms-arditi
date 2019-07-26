@@ -2,13 +2,12 @@ package common.cqrs
 
 import akka.actor.{ ActorRef, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props }
 import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
-import scaladsl.CQRS.example.ExampleEntity
 
 import scala.math.abs
 
 trait ShardedEntity {
 
-  val entityProps: Props = ExampleEntity.props;
+  val entityProps: Props
 
   object ShardedEntity extends ExtensionId[ShardedEntity] with ExtensionIdProvider {
     override def lookup: EventProcessorWrapper.type = EventProcessorWrapper
@@ -38,12 +37,11 @@ trait ShardedEntity {
 
     def start(): Unit =
       ClusterSharding(system).start(
-        typeName        = typeName,
-        entityProps     = entityProps,
-        settings        = ClusterShardingSettings(system).withRole("write-model"),
+        typeName = typeName,
+        entityProps = entityProps,
+        settings = ClusterShardingSettings(system).withRole("write-model"),
         extractEntityId = extractEntityId,
-        extractShardId  = extractShardId(shardCount)
-      )
+        extractShardId = extractShardId(shardCount))
 
     def tell(id: String, msg: Any)(implicit sender: ActorRef = ActorRef.noSender): Unit =
       shardRegion ! EntityEnvelope(id, msg)

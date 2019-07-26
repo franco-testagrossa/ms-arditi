@@ -7,9 +7,8 @@ import eggs.domain.EggStyle._
 trait Adaptor {
 
   def toEggStyle(
-      message: Any,
-      default: EggStyle = HardBoiled
-  ): EggStyle = message match {
+    message: Any,
+    default: EggStyle = HardBoiled): EggStyle = message match {
     case "Scrambled" => Scrambled
     case "OverEasy" => OverEasy
     case "OverMedium" => OverMedium

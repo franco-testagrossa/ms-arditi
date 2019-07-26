@@ -31,14 +31,12 @@ object Startup extends App {
                | Started Kafka inside a Docker container in the background!
                | We'll give it a minute to start and then we can assume it done! :D
                | ${dockerContainerId}
-               | """)
-        ),
+               | """)),
       (e: String) =>
         if (e contains "Bind for 0.0.0.0:9092 failed: port is already allocated.")
           println(y("The container is up and running already, so no problem! :)"))
         else
-          println(r(e))
-    )
+          println(r(e)))
 
     println(startupCommand)
     startupCommand ! logger

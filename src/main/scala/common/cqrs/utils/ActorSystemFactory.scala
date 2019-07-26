@@ -1,7 +1,7 @@
 package common.cqrs.utils
 
 import akka.actor.ActorSystem
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 
 trait ActorSystemFactory {
 
@@ -9,16 +9,14 @@ trait ActorSystemFactory {
   val lead = false
   val index = 1
 
-  def createActorSystem(name: String): ActorSystem
+  def createActorSystem(name: String, config: Config): ActorSystem
 }
-
 
 // honor composition over inheritance
 object ActorSystemFactory {
 
   case class ActorSystemMember()
-  case class ActorSystemMembers(lead: ActorSystem, )
-  val actorSystems = Map[String, ActorSystem]
+  val actorSystems = Map.empty[String, ActorSystem]
 
   def createConfig(role: String, index: Int) = {
     val index = Seq(actorSystems).length + 1
@@ -36,10 +34,8 @@ object ActorSystemFactory {
       akka.discovery.method=config
       akka.management.http.hostname=127.0.0.$index
       akka.remote.artery.canonical.hostname=127.0.0.$index
-   """
-    ).withFallback(ConfigFactory.load("application.conf"))
+   """).withFallback(ConfigFactory.load("application.conf"))
 
   }
 
-  def write(name: String) =
 }

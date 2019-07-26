@@ -1,4 +1,4 @@
-package sample.cqrs
+/*package sample.cqrs
 
 import akka.actor.{ ActorLogging, Props }
 import akka.persistence.PersistentActor
@@ -92,3 +92,4 @@ class SwitchEntity extends PersistentActor with ActorLogging {
   }
 
 }
+*/ 
