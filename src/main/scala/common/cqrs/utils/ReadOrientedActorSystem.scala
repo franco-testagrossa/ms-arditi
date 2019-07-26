@@ -5,9 +5,9 @@ import com.typesafe.config.{ Config, ConfigFactory }
 
 trait ReadOrientedActorSystem extends ActorSystemFactory {
   val port = 2551
-  val role = "read"
-  val lead = false
-  val index = 1
+  override val role = "read"
+  override val lead = false
+  override  val index = 1
 
   override def createActorSystem(
       name: String = "ClusterArditi",

@@ -3,11 +3,11 @@ package common.cqrs.utils
 import akka.actor.ActorSystem
 import com.typesafe.config.{ Config, ConfigFactory }
 
-object WriteOrientedActorSystem extends ActorSystemFactory {
+trait WriteOrientedActorSystem extends ActorSystemFactory {
   val port = 2552
-  val role = "write"
-  val lead = false
-  val index = 2
+  override val role = "write"
+  override val lead = false
+  override val index = 2
 
   override def createActorSystem(
       name: String = "ClusterArditi",

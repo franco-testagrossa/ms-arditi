@@ -9,7 +9,7 @@ trait ActorSystemFactory {
   val lead = false
   val index = 1
 
-  def createActorSystem(name: String): ActorSystem
+  def createActorSystem(name: String, config: Config): ActorSystem
 }
 
 
@@ -17,8 +17,7 @@ trait ActorSystemFactory {
 object ActorSystemFactory {
 
   case class ActorSystemMember()
-  case class ActorSystemMembers(lead: ActorSystem, )
-  val actorSystems = Map[String, ActorSystem]
+  val actorSystems = Map.empty[String, ActorSystem]
 
   def createConfig(role: String, index: Int) = {
     val index = Seq(actorSystems).length + 1
@@ -41,5 +40,4 @@ object ActorSystemFactory {
 
   }
 
-  def write(name: String) =
 }
