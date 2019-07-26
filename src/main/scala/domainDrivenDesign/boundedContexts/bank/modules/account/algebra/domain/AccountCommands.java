@@ -1,9 +1,4 @@
-package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.eventsourcing.command
-
-import domainDrivenDesign.Abstractions.{Command, Commands}
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.Account
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.eventsourcing.event.{Closed, Credited, Debited, Opened}
-import org.joda.time.DateTime
+package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain;
 
 trait AccountCommands extends Commands[Account] {
 

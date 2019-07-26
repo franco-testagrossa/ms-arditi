@@ -9,7 +9,8 @@ trait inMemoryEventStore extends EventStore[String] {
   import scala.collection.concurrent.TrieMap
   val eventLog = TrieMap[String, List[Event[_]]]()
 
-  override def get(key: String): List[Event[_]] = eventLog.get(key).getOrElse(List.empty[Event[_]])
+  override def get(key: String): List[Event[_]] =
+    eventLog.get(key).getOrElse(List.empty[Event[_]])
 
   override def put(key: String, event: Event[_]):  Error \/ List[Event[_]] = { // HELP - WHY DOES SCALAZ NOT WORK HERE
     val currentList = eventLog.getOrElse(key, Nil)

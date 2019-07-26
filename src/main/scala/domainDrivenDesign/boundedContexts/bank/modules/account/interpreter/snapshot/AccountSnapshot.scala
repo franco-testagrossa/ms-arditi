@@ -1,8 +1,8 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.interpreter.snapshot
 
 import domainDrivenDesign.Abstractions.{ Event, Snapshot }
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.{ Account, Balance }
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.eventsourcing.event.{ Closed, Credited, Debited, Opened }
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.events._
 
 object AccountSnapshot extends Snapshot[Account] {
   override def updateState(e: Event[_], initial: Map[String, Account]): Map[String, Account] = e match {

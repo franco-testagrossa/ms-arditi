@@ -1,14 +1,24 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter
 
 import domainDrivenDesign.Abstractions.{ Event, EventStore }
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.Account
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.eventsourcing.event.{ Credited, Debited, Opened }
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.events._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.algebra.AccountRules
 import scalaz.{ Scalaz, \/, ~> }
 import Scalaz._
 import org.joda.time.DateTime
 import scalaz.concurrent.Task
 
+/*
+# Why AccountRulesV1
+## instead of a companion object of AccountRules?
+The rules may evolve, and we need to keep track of their evolution
+
+# Why is AccountRulesV1 a trait
+## instead of an object, given that it is the interpreter of AccountRules
+There is a pivot point: The EventSource trait
+We may want to store the events in memory, for testing purposes or we may want to persist the data in a production enviroment
+ */
 trait AccountRulesV1 extends AccountRules with EventStore[String] {
 
   import domainDrivenDesign.boundedContexts.bank.modules.account.interpreter.snapshot.AccountSnapshot._

@@ -1,10 +1,10 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.algebra
 
 import domainDrivenDesign.Abstractions.{Event, RepositoryBackedInterpreter}
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.Account
 import org.joda.time.DateTime
 import scalaz.{Free, \/, ~>}
 import scalaz.concurrent.Task
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
 
 trait AccountRules extends RepositoryBackedInterpreter {
 
