@@ -2,6 +2,7 @@ package domainDrivenDesign
 
 import domainDrivenDesign.Abstractions.{Cmd, Response, State}
 import scalaz.{Validation, \/}
+import scalaz.Scalaz._
 
 
 package object Abstractions {
@@ -34,19 +35,16 @@ package object Abstractions {
   }
 
   trait State[A] { bs: BussinessRules[A] =>
-    def +(event: Event[A]): State[A]
-    def get: State[A]
     def aggregate: A
-    def verify(command: Cmd[A]): Response[A] = bs(command, this)
+    def +(event: Event[A]): State[A]
+    def verify(command: Cmd[A]): String \/ Response[A] = bs(command, this)
   }
 
   type SuccessResponse = String
   type ErrorResponse = String
   trait Response[A] {
-    def errors: List[String]
-    def events: List[Event[A]]
     def success: SuccessResponse
-    def error: ErrorResponse
+    val events: List[Event[A]]
   }
 
   trait BussinessRule[A] {
@@ -55,10 +53,11 @@ package object Abstractions {
 
   trait BussinessRules[A] {
     val rules: List[BussinessRule[A]]
-    def apply(cmd: Cmd[A], state: State[A]): Response[A] =
+    def apply(cmd: Cmd[A], state: State[A]): String \/ Response[A] =
         rules
           .map(_.rule)
           .reduce(_ orElse _)
           .apply((cmd, state))
+          .right
   }
 }

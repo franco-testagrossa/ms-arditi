@@ -1,15 +1,22 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.interpreter
 
+import akka.actor.{ActorSystem, Props}
 import akka.persistence.PersistentActor
-import domainDrivenDesign.Abstractions._
+import akka.testkit.TestKit
+import domainDrivenDesign.Abstractions.{Response, _}
 import scalaz.concurrent.Task
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.AccountRulesV1
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.{AccountRulesV1, MyEntity}
+import org.joda.time.DateTime
+import org.scalatest.WordSpecLike
 import scalaz.Scalaz._
 import scalaz.\/
 
-class WithEventLogSpec extends org.scalatest.WordSpec {
+import scala.util.{Failure, Success}
 
+class WithEventLogSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike {
+
+  def this() = this(_system = ActorSystem("DSL"))
   object withEventLog extends App {
     import AccountRulesWithMockDB._
     import AccountRulesV1._
@@ -23,34 +30,35 @@ class WithEventLogSpec extends org.scalatest.WordSpec {
         events.reverse.mkString("\n")))
   }
 
-  "WithEventLog" should {
+  "WithEventLog" ignore {
     "do something" in {
       withEventLog.main(Array())
     }
   }
 
 
-  // DSL IN ACTION
-  // Persistent entity for Aggregate Account
-  trait PersistentEntity[A] extends PersistentActor {
-    val typeName = self.getClass.getSimpleName
-    override def persistenceId: String = typeName  + "-" + self.path.name
+  "PersistentEntity DSL" should {
+    import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.MyEntity._
+    "succeed" in {
+      val aggregate = childActorOf(Props(new MyEntity), "Account")
 
-    // interpreter: Interpreter[A]
-    var state: State[A]
-    override def receiveCommand: Receive = {
-      case cmd: Cmd[A] =>
-        // val output: P[E] = interpreter.run(cmd, state)
-        val response = state.verify(cmd)
-        persist(response.events.head) { evt =>
-          state += evt
-          println(state)
-          sender() ! state
-        }
-    }
+      import akka.pattern.ask
+      import scala.concurrent.duration._
+      implicit val ec = _system.dispatcher
+      implicit val timeout = akka.util.Timeout(3 seconds)
 
-    override def receiveRecover: Receive = {
-      case evt: Event[A] => state += evt
+      val result = for {
+        a <- (aggregate ? Run("1")).mapTo[MyResponse]
+        b <- (aggregate ? Run("2")).mapTo[MyResponse]
+        c <- (aggregate ? Run("3")).mapTo[MyResponse]
+      } yield (a, b, c)
+
+      result.onComplete {
+        case Failure(exception) =>
+          println(s"Failure($exception)")
+        case Success(value) =>
+          println(s"Success($value)")
+      }
     }
   }
 }
