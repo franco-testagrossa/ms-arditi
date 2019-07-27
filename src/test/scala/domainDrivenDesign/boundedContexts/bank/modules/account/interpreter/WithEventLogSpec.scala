@@ -9,14 +9,14 @@ import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.mo
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.{AccountRulesV1, MyEntity}
 import org.joda.time.DateTime
 import org.scalatest.WordSpecLike
+import sagas.utils.ClusterArditiSpec
 import scalaz.Scalaz._
 import scalaz.\/
 
 import scala.util.{Failure, Success}
 
-class WithEventLogSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike {
+class WithEventLogSpec extends ClusterArditiSpec {
 
-  def this() = this(_system = ActorSystem("DSL"))
   object withEventLog extends App {
     import AccountRulesWithMockDB._
     import AccountRulesV1._
@@ -30,11 +30,11 @@ class WithEventLogSpec(_system: ActorSystem) extends TestKit(_system) with WordS
         events.reverse.mkString("\n")))
   }
 
-  "WithEventLog" ignore {
-    "do something" in {
-      withEventLog.main(Array())
-    }
-  }
+  // "WithEventLog" ignore {
+  //   "do something" in {
+  //     withEventLog.main(Array())
+  //   }
+  // }
 
 
   "PersistentEntity DSL" should {
@@ -44,21 +44,23 @@ class WithEventLogSpec(_system: ActorSystem) extends TestKit(_system) with WordS
 
       import akka.pattern.ask
       import scala.concurrent.duration._
-      implicit val ec = _system.dispatcher
+      implicit val ec = system.dispatcher
       implicit val timeout = akka.util.Timeout(3 seconds)
 
-      val result = for {
-        a <- (aggregate ? Run("1")).mapTo[MyResponse]
-        b <- (aggregate ? Run("2")).mapTo[MyResponse]
-        c <- (aggregate ? Run("3")).mapTo[MyResponse]
-      } yield (a, b, c)
-
-      result.onComplete {
-        case Failure(exception) =>
-          println(s"Failure($exception)")
-        case Success(value) =>
-          println(s"Success($value)")
-      }
+      // val result = for {
+      //   a <- (aggregate ? Run("1")).mapTo[Response[Account]]
+      //   b <- (aggregate ? Run("2")).mapTo[Response[Account]]
+      //   c <- (aggregate ? Run("3")).mapTo[Response[Account]]
+      // } yield (a, b, c)
+      aggregate ! Run("1")
+      aggregate ! Run("2")
+      aggregate ! Run("3")
+      // result.onComplete {
+      //   case Failure(exception) =>
+      //     println(s"Failure($exception)")
+      //   case Success(value) =>
+      //     println(s"Success($value)")
+      // }
     }
   }
 }

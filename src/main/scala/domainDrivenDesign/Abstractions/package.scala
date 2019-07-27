@@ -42,13 +42,10 @@ package object Abstractions {
 
   type SuccessResponse = String
   type ErrorResponse = String
-  trait Response[A] {
-    def success: SuccessResponse
-    val events: List[Event[A]]
-  }
+  case class Response[A](success: SuccessResponse, events: List[Event[A]])
 
   trait BussinessRule[A] {
-    def rule: PartialFunction[(Cmd[A], State[A]), Response[A]]
+    def rule: PartialFunction[(Cmd[A], State[A]), String \/ Response[A]]
   }
 
   trait BussinessRules[A] {
@@ -58,6 +55,5 @@ package object Abstractions {
           .map(_.rule)
           .reduce(_ orElse _)
           .apply((cmd, state))
-          .right
   }
 }

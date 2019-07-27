@@ -74,7 +74,7 @@ object Dependencies {
             Nil
     }
 
-    object AkkaPersistence extends Module {
+    object ReactiveMongo extends Module {
         private lazy val rxmongoVersion = "2.2.0" // "2.2.9"
         private lazy val reactiveMongoVersion = "0.16.0"
 
@@ -107,8 +107,8 @@ object Dependencies {
     }
 
     // Projects
-    lazy val mainDeps = Akka.modules ++ ScalaZ.modules ++ Utils.modules ++ TestDB.modules
-    lazy val testDeps = Test.modules ++ TestDB.modules
+    lazy val mainDeps = Akka.modules ++ ScalaZ.modules ++ ReactiveMongo.modules ++ Utils.modules ++ TestDB.modules
+    lazy val testDeps = Test.modules
 }
 
 trait Dependencies {
