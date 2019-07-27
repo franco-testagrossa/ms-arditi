@@ -35,7 +35,6 @@ package object Abstractions {
   }
 
   case class Response[A](success: String, event: Event[A])
-
   type BsResponse[A] = \/[String, Response[A]]
   type BusinessRule[A] = (Cmd[A], State[A]) => BsResponse[A]
   trait BusinessRules[A] extends ((Cmd[A], State[A]) => BsResponse[A]) {
@@ -60,7 +59,7 @@ package object Abstractions {
     // State Managment
     val aggregate: A
     def +(event: Event[A]): State[A]
-    // BussinessRules
+    // BusinessRules
     def verify(command: Cmd[A]): BsResponse[A] = bs(command, this)
   }
 }

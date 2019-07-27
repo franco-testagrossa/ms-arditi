@@ -53,9 +53,7 @@ class WithEventLogSpec extends ClusterArditiSpec {
       import MyEntity._
       var state: State[Account] = MyState(Account("0", "MyEntity", DateTime.now))
       // use the state monad to alter the state
-      val events = List(
-        Runned("0"), Runned("1"), Runned("3")
-      )
+      val events = Runned("0") :: Runned("1") :: Runned("3") :: Nil
       state = events.map(identity[Event[Account]]).foldLeft(state)(_+_)
       println(state)
     }

@@ -38,12 +38,9 @@ trait PersistentEntity[A] extends PersistentActor with ActorLogging {
 }
 
 class MyEntity extends PersistentEntity[Account] {
-  override def persistenceId: String = "MyEntity"  + "-" + self.path.name
-
   override var state: State[Account] =
     MyEntity.MyState(Account(persistenceId, "MyEntity", DateTime.now))
 }
-
 
 object MyEntity {
   // Cmds
@@ -51,10 +48,8 @@ object MyEntity {
   // Events
   case class Runned(id: String, at: DateTime = DateTime.now) extends Event[Account]
   // BussinessRules
-  object BusinessRuleA extends ((Cmd[Account], State[Account]) => BsResponse[Account]) {
-    override def apply(cmd: Cmd[Account], state: State[Account]): BsResponse[Account] =
-      Response("Exito!!", Runned(cmd.id)).right
-  }
+  val businessRuleA = (cmd: Cmd[Account], state: State[Account]) => Response("Exito!!", Runned(cmd.id)).right
+
   // State
   case class MyState(aggregate: Account) extends State[Account] with BusinessRules[Account] {
     override def +(event: Event[Account]): State[Account] = event match {
@@ -62,7 +57,7 @@ object MyEntity {
         println(s"Runned $id ${date.toString}")
         this.copy(aggregate.copy(name = s"PARA VOS GIL $id")) // Lens
     }
-    override val rules: List[BusinessRule[Account]] = List(BusinessRuleA) // add twice what happens ?
+    override val rules: List[BusinessRule[Account]] = List(businessRuleA) // add twice what happens ?
   }
 
   // Sharding
