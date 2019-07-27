@@ -41,16 +41,13 @@ class WithEventLogSpec extends org.scalatest.WordSpec {
     override def receiveCommand: Receive = {
       case cmd: Cmd[A] =>
         // val output: P[E] = interpreter.run(cmd, state)
-        state.verify(cmd).flatMap { response =>
-          persist(response.events.head) { evt =>
-            state += evt
-            println(state)
-            sender() ! state
-          }.right
+        val response = state.verify(cmd)
+        persist(response.events.head) { evt =>
+          state += evt
+          println(state)
+          sender() ! state
         }
     }
-
-
 
     override def receiveRecover: Receive = {
       case evt: Event[A] => state += evt

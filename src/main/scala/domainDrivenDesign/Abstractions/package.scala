@@ -28,8 +28,6 @@ package object Abstractions {
       scalaz.Free.liftF[Event, A](event)
   }
 
-
-
   // DSL
   trait Cmd[A] {
     def id: AggregateRoot
@@ -42,11 +40,13 @@ package object Abstractions {
     def verify(command: Cmd[A]): Response[A] = bs(command, this)
   }
 
+  type SuccessResponse = String
+  type ErrorResponse = String
   trait Response[A] {
     def errors: List[String]
     def events: List[Event[A]]
-    def success: String
-    def error: String
+    def success: SuccessResponse
+    def error: ErrorResponse
   }
 
   trait BussinessRule[A] {
@@ -55,13 +55,10 @@ package object Abstractions {
 
   trait BussinessRules[A] {
     val rules: List[BussinessRule[A]]
-    def apply(cmd: Cmd[A], state: State[A]): Response[A] = {
-      val value: PartialFunction[(Cmd[A], State[A]), Response[A]] =
-        rules.reduce((a, b) => a.rule.orElse(b.rule))
-
-      val response: Response[A] = value.apply(cmd,state)
-      response
-    }
-
+    def apply(cmd: Cmd[A], state: State[A]): Response[A] =
+        rules
+          .map(_.rule)
+          .reduce(_ orElse _)
+          .apply((cmd, state))
   }
 }
