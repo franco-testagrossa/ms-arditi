@@ -1,7 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.algebra
 
-import domainDrivenDesign.Abstractions.{Command, CommandHandler, Event, EventStore}
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.events.{Credited, Debited, Opened}
+import domainDrivenDesign.Abstractions.{Command, CommandHandler, Event}
 import org.joda.time.DateTime
 import scalaz.{Free, Scalaz, \/, ~>}
 import scalaz.concurrent.Task
@@ -23,4 +22,5 @@ trait AccountRules extends CommandHandler {
   def validateCredit(id: String): Error \/ Map[String, Account]
 
   def validateOpen(id: String): _root_.scalaz.\/[_ <: _root_.scala.Predef.String, _ <: _root_.scala.Predef.String]
+
 }
