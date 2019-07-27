@@ -2,14 +2,15 @@ package domainDrivenDesign.boundedContexts.bank.modules.account.interpreter
 
 import akka.actor.{ActorSystem, Props}
 import akka.persistence.PersistentActor
-import akka.testkit.TestKit
+import akka.testkit.{TestKit, TestProbe}
 import domainDrivenDesign.Abstractions.{Response, _}
 import scalaz.concurrent.Task
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.{AccountRulesV1, MyEntity}
 import org.joda.time.DateTime
 import org.scalatest.WordSpecLike
-import sagas.utils.ClusterArditiSpec
+import sagas.account.AccountActor
+import sagas.utils.{ClusterArditiSpec, RestartActorSupervisorFactory}
 import scalaz.Scalaz._
 import scalaz.\/
 
@@ -40,6 +41,11 @@ class WithEventLogSpec extends ClusterArditiSpec {
   "PersistentEntity DSL" should {
     import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.MyEntity._
     "succeed" in {
+      val testProbe = TestProbe()
+      val supervisor = new RestartActorSupervisorFactory
+      val diana = supervisor.create(MyEntity.props(), "Diana")
+
+
       val aggregate = childActorOf(Props(new MyEntity), "Account")
 
       import akka.pattern.ask
@@ -47,20 +53,17 @@ class WithEventLogSpec extends ClusterArditiSpec {
       implicit val ec = system.dispatcher
       implicit val timeout = akka.util.Timeout(3 seconds)
 
-      // val result = for {
-      //   a <- (aggregate ? Run("1")).mapTo[Response[Account]]
-      //   b <- (aggregate ? Run("2")).mapTo[Response[Account]]
-      //   c <- (aggregate ? Run("3")).mapTo[Response[Account]]
-      // } yield (a, b, c)
-      aggregate ! Run("1")
-      aggregate ! Run("2")
-      aggregate ! Run("3")
-      // result.onComplete {
-      //   case Failure(exception) =>
-      //     println(s"Failure($exception)")
-      //   case Success(value) =>
-      //     println(s"Success($value)")
-      // }
+      val result = for {
+        a <- (aggregate ? Run("1")).mapTo[Response[Account]]
+        b <- (aggregate ? Run("2")).mapTo[Response[Account]]
+        c <- (aggregate ? Run("3")).mapTo[Response[Account]]
+      } yield (a, b, c)
+      result.onComplete {
+        case Failure(exception) =>
+          println(s"Failure($exception)")
+        case Success(value) =>
+          println(s"Success($value)")
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter
 
-import akka.actor.ActorLogging
+import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
 import domainDrivenDesign.Abstractions.{BussinessRule, BussinessRules, Cmd, Event, Response, State, SuccessResponse}
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model.Account
@@ -68,4 +68,7 @@ object MyEntity {
     }
     override val rules: List[BussinessRule[Account]] = List(BussinessRuleA) // add twice what happens ?
   }
+
+  // Sharding
+  def props(): Props = Props(new MyEntity)
 }
