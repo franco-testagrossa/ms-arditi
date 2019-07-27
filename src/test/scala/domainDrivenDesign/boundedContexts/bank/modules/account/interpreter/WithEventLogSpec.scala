@@ -1,7 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.interpreter
 
 import akka.persistence.PersistentActor
-import common.io.persistence.inMemoryEventStore
 import domainDrivenDesign.Abstractions._
 import scalaz.concurrent.Task
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._

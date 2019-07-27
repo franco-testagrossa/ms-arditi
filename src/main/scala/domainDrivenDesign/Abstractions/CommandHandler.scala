@@ -1,7 +1,7 @@
 package domainDrivenDesign.Abstractions
 
 import scalaz.concurrent.Task
-import scalaz.{ Free, \/, ~> }
+import scalaz.~>
 
 trait CommandHandler {
   def step: Event ~> Task

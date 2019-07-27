@@ -1,8 +1,5 @@
 package domainDrivenDesign
 
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.events.Opened
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model.Account
-
 package object Abstractions {
   /**
     * All aggregates need to have an id
