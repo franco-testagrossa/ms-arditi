@@ -2,7 +2,7 @@ package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.in
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
-import domainDrivenDesign.Abstractions.{BussinessRule, BussinessRules, Cmd, Event, Response, State, SuccessResponse}
+import domainDrivenDesign.Abstractions._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model.Account
 import org.joda.time.DateTime
 import scalaz.Scalaz._
@@ -15,21 +15,20 @@ trait PersistentEntity[A] extends PersistentActor with ActorLogging {
   override def persistenceId: String = typeName  + "-" + self.path.name
 
   // interpreter: Interpreter[A]
-  var state: State[A]
+  var state: State[A] // Option and None as default ?
   override def receiveCommand: Receive = {
     case cmd: Cmd[A] =>
       log.info("Received command {}", cmd)
       // val output: P[E] = interpreter.run(cmd, state)
       state.verify(cmd).flatMap { response =>
-        // persist(response.events.head) { evt => }.right
-        val evt = response.events.head
-        log.info("Persisted")
-        state += evt
-        log.info("State updated with {} and {}", state, evt)
-        sender() ! response // add state to response
-        println("sent to sender")
-        response.right
-
+        persist(response.event) { e =>
+          log.info("Persisted")
+          state += e
+          log.info("State updated with {} and {}", state, e)
+          sender() ! response // add state to response
+          println("sent to sender")
+        }
+        ().right
       }
   }
 
@@ -52,21 +51,18 @@ object MyEntity {
   // Events
   case class Runned(id: String, at: DateTime = DateTime.now) extends Event[Account]
   // BussinessRules
-  object BussinessRuleA extends BussinessRule[Account] {
-    // what happens with the list ?? how do i add more elements to it ?
-    override def rule: PartialFunction[(Cmd[Account], State[Account]), String \/ Response[Account]] = {
-      case (cmd: Run, state: State[Account]) =>
-        Response("Exito!!", List(Runned(cmd.id))).right
-    }
+  object BusinessRuleA extends ((Cmd[Account], State[Account]) => BsResponse[Account]) {
+    override def apply(cmd: Cmd[Account], state: State[Account]): BsResponse[Account] =
+      Response("Exito!!", Runned(cmd.id)).right
   }
   // State
-  case class MyState(aggregate: Account) extends State[Account] with BussinessRules[Account] {
+  case class MyState(aggregate: Account) extends State[Account] with BusinessRules[Account] {
     override def +(event: Event[Account]): State[Account] = event match {
       case Runned(id, date) =>
         println(s"Runned $id ${date.toString}")
         this.copy(aggregate.copy(name = s"PARA VOS GIL $id")) // Lens
     }
-    override val rules: List[BussinessRule[Account]] = List(BussinessRuleA) // add twice what happens ?
+    override val rules: List[BusinessRule[Account]] = List(BusinessRuleA) // add twice what happens ?
   }
 
   // Sharding

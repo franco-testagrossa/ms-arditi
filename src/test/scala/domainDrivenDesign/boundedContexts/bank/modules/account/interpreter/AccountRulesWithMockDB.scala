@@ -7,6 +7,7 @@ import org.joda.time.DateTime
 
 object AccountRulesWithMockDB {
   import AccountCommands._
+
   def transfer(from: String, to: String, amount: BigDecimal): Command[Unit] = for {
     _ <- debit(from, amount)
     _ <- credit(to, amount)

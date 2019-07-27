@@ -11,7 +11,7 @@ object Dependencies {
         Resolver typesafeRepo "releases",
         Resolver.bintrayRepo("tanukkii007", "maven"),
         // the library is available in Bintray repository
-        ("dnvriend" at "http://dl.bintray.com/dnvriend/maven")
+        "dnvriend" at "http://dl.bintray.com/dnvriend/maven"
     )
 
     // Module
@@ -32,25 +32,26 @@ object Dependencies {
 
     object TestDB extends Module {
         private lazy val lvlDbVersion = "0.9"
-        private lazy val lvlDbJniVersion = "1.8"
+        private lazy val lvlDbJniVersion = "0.9"
+        private lazy val inmemoryVersion = "2.5.15.1"
 
         private lazy val lvlDb = "org.iq80.leveldb" % "leveldb" % lvlDbVersion
         private lazy val lvlDbJni = "org.fusesource.leveldbjni" % "leveldbjni-all" % lvlDbJniVersion
+        private lazy val inmemory = "com.github.dnvriend" %% "akka-persistence-inmemory" % inmemoryVersion
         
-        override def modules: Seq[ModuleID] = 
-            ("com.github.dnvriend" %% "akka-persistence-inmemory" % "2.5.15.1") :: Nil
+        override def modules: Seq[ModuleID] =
+            inmemory :: Nil
     }
     
     object Akka extends Module {
         private lazy val akkaVersion = "2.5.23"
         private lazy val akkaHttpVersion = "10.1.7"
         private lazy val akkaManagementVersion = "1.0.0"
-        private lazy val AkkaPersistenceCassandraVersion = "0.93"
 
         private def akkaModule(name: String) = "com.typesafe.akka" %% name % akkaVersion 
         private def akkaHttpModule(name: String) = "com.typesafe.akka" %% name % akkaHttpVersion 
         private def akkaManagmentModule(name: String) = "com.lightbend.akka.management" %% name % akkaManagementVersion
-        private def akkaPersistenceCassandraModule(name: String) = "com.typesafe.akka" %% name % AkkaPersistenceCassandraVersion
+        private lazy val SBR = "com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12"
 
         override def modules: Seq[ModuleID] =
             akkaModule("akka-cluster") :: 
@@ -68,11 +69,21 @@ object Dependencies {
             akkaManagmentModule("akka-management-cluster-bootstrap") :: 
             akkaHttpModule("akka-http") ::
             akkaHttpModule("akka-http-core") ::
+              SBR ::
+                Nil
+    }
+
+    object Cassandra extends Module {
+        private lazy val AkkaPersistenceCassandraVersion = "0.93"
+        private def akkaPersistenceCassandraModule(name: String) =
+            "com.typesafe.akka" %% name % AkkaPersistenceCassandraVersion
+
+        override def modules: Seq[sbt.ModuleID] =
             akkaPersistenceCassandraModule("akka-persistence-cassandra") ::
             akkaPersistenceCassandraModule("akka-persistence-cassandra-launcher") ::
-            "com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12" :: // SBR
             Nil
     }
+
 
     object ReactiveMongo extends Module {
         private lazy val rxmongoVersion = "2.2.0" // "2.2.9"
@@ -86,12 +97,12 @@ object Dependencies {
     }
     
     object ScalaZ extends Module {
+        private lazy val scalazVersion = "7.2.28"
 
-        override def modules: Seq[ModuleID] = Seq(
-             "org.scalaz" %% "scalaz-core" % "7.3.0-M30",
-             "org.scalaz" %% "scalaz-concurrent" % "7.3.0-M27",
-             "org.scalaz" %% "scalaz-zio" % "1.0-RC5"
-        )
+        private lazy val scalazCore = "org.scalaz" %% "scalaz-core" % scalazVersion
+        private lazy val scalazConcurrent = "org.scalaz" %% "scalaz-concurrent" % scalazVersion
+
+        override def modules: Seq[ModuleID] = scalazCore :: scalazConcurrent :: Nil
     }
     
     object Utils extends Module {
@@ -107,7 +118,11 @@ object Dependencies {
     }
 
     // Projects
-    lazy val mainDeps = Akka.modules ++ ScalaZ.modules ++ ReactiveMongo.modules ++ Utils.modules ++ TestDB.modules
+    lazy val mainDeps =
+        Akka.modules ++ ScalaZ.modules ++
+          ReactiveMongo.modules ++ Cassandra.modules ++
+          Utils.modules ++ TestDB.modules
+
     lazy val testDeps = Test.modules
 }
 
