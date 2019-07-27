@@ -5,10 +5,14 @@ import common.io.persistence.inMemoryEventStore
 import domainDrivenDesign.Abstractions._
 import scalaz.concurrent.Task
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.AccountRulesV1
 
 class WithEventLogSpec extends org.scalatest.WordSpec {
 
-  object withEventLog extends App with AccountRulesWithMockDB with inMemoryEventStore {
+  object withEventLog extends App {
+    import AccountRulesWithMockDB._
+    import AccountRulesV1._
+
     val result: Task[Account] = apply(comp)
     val complete: Account = result.unsafePerformSync
     val events = allEvents
@@ -33,7 +37,7 @@ class WithEventLogSpec extends org.scalatest.WordSpec {
 
     var state: State[A]
     override def receiveCommand: Receive = {
-      case cmd: AggregateCommand =>
+      case cmd: Commands[_] =>
 
     }
 

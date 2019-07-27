@@ -6,6 +6,7 @@ import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.ev
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.algebra.AccountRules
 import scalaz.{Scalaz, \/, ~>}
 import Scalaz._
+import common.io.persistence.inMemoryEventStore
 import org.joda.time.DateTime
 import scalaz.concurrent.Task
 
@@ -19,7 +20,7 @@ The rules may evolve, and we need to keep track of their evolution
 There is a pivot point: The EventSource trait
 We may want to store the events in memory, for testing purposes or we may want to persist the data in a production enviroment
  */
-trait AccountRulesV1 extends AccountRules with EventStore[String] {
+object AccountRulesV1 extends AccountRules with inMemoryEventStore {
 
   import domainDrivenDesign.boundedContexts.bank.modules.account.interpreter.snapshot.AccountSnapshot._
 

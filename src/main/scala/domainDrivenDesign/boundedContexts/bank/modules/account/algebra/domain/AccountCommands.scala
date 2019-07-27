@@ -7,7 +7,6 @@ import org.joda.time.DateTime
 
 // ADT
 trait AccountCommands extends Commands[Account] {
-
   def open(no: String, name: String, openingDate: Option[DateTime]): Command[Account] =
    Opened(no, name, openingDate, DateTime.now())
 
@@ -20,3 +19,4 @@ trait AccountCommands extends Commands[Account] {
   def credit(no: String, amount: BigDecimal): Command[Account] =
     Credited(no, amount, DateTime.now())
 }
+object AccountCommands extends AccountCommands

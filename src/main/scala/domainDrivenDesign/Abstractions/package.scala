@@ -1,5 +1,8 @@
 package domainDrivenDesign
 
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.events.Opened
+import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model.Account
+
 package object Abstractions {
   /**
     * All aggregates need to have an id
@@ -27,11 +30,7 @@ package object Abstractions {
   trait State[S] {
     def +[A](event: Event[A]): State[S]
     def get: State[S]
-    def verify[A](command: AggregateCommand): Boolean
-  }
-
-  trait AggregateCommand {
-    def id: AggregateRoot
+    def verify[A](command: Commands[A]): Option[State[S]]
   }
 
   trait PersistentEffect[A] {
