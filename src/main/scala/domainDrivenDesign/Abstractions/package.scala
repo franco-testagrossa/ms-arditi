@@ -1,7 +1,5 @@
 package domainDrivenDesign
 
-import scalaz.\/
-
 package object Abstractions {
   /**
     * All aggregates need to have an id
