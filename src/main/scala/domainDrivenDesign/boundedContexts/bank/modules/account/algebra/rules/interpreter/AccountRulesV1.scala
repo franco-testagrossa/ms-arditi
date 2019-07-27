@@ -1,6 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter
 
-import domainDrivenDesign.Abstractions.{Command, Event, EventStore}
+import domainDrivenDesign.Abstractions.Event
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.events._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.algebra.AccountRules
@@ -9,6 +9,7 @@ import Scalaz._
 import common.io.persistence.inMemoryEventStore
 import org.joda.time.DateTime
 import scalaz.concurrent.Task
+import domainDrivenDesign.boundedContexts.bank.modules.account.interpreter.snapshot.AccountSnapshot._
 
 /*
 # Why AccountRulesV1
@@ -22,16 +23,7 @@ We may want to store the events in memory, for testing purposes or we may want t
  */
 object AccountRulesV1 extends AccountRules with inMemoryEventStore {
 
-  import domainDrivenDesign.boundedContexts.bank.modules.account.interpreter.snapshot.AccountSnapshot._
-
   //val eventStore = InMemoryEventStore.apply
-  val step: Event ~> Task = new (Event ~> Task) {
-    override def apply[A](action: Event[A]): Task[A] = handleCommand(action)
-  }
-
-  /*val step: Event ~> Task = new (Event ~> Task) {
-    override def apply(action: Free[Event, Account]): Task[Account] = handleCommand(action.)
-  }*/
 
   def closed(a: Account): Error \/ Account =
     if (a.dateOfClosing isDefined) new Error(s"Account ${a.id} is closed").left

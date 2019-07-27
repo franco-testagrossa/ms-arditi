@@ -1,11 +1,12 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.interpreter
 
 import akka.persistence.PersistentActor
-import common.io.persistence.inMemoryEventStore
 import domainDrivenDesign.Abstractions._
 import scalaz.concurrent.Task
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.AccountRulesV1
+import scalaz.Scalaz._
+import scalaz.\/
 
 class WithEventLogSpec extends org.scalatest.WordSpec {
 
@@ -35,9 +36,13 @@ class WithEventLogSpec extends org.scalatest.WordSpec {
     val typeName = self.getClass.getSimpleName
     override def persistenceId: String = typeName  + "-" + self.path.name
 
+    // interpreter: Interpreter[A]
     var state: State[A]
     override def receiveCommand: Receive = {
-      case cmd: Commands[_] =>
+      case cmd: Commands[Account] =>
+      /*
+        val output: P[E] = interpreter.run(cmd, state)
+       */
 
     }
 

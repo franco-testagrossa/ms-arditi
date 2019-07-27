@@ -6,7 +6,6 @@ import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.ev
 
 object AccountSnapshot extends Snapshot[Account] {
   override def updateState(e: Event[_], initial: Map[String, Account]): Map[String, Account] = e match {
-
     case o @ Opened(no, name, odate, _) =>
       initial + (no -> Account(no, name, odate.get))
 

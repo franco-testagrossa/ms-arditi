@@ -1,11 +1,9 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.algebra
 
-import domainDrivenDesign.Abstractions.{Command, CommandHandler, Event}
+import domainDrivenDesign.Abstractions.CommandHandler
 import org.joda.time.DateTime
-import scalaz.{Free, Scalaz, \/, ~>}
-import scalaz.concurrent.Task
+import scalaz.\/
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
-import domainDrivenDesign.boundedContexts.bank.modules.account.interpreter.snapshot.AccountSnapshot.{snapshot, updateState}
 
 trait AccountRules extends CommandHandler {
 
