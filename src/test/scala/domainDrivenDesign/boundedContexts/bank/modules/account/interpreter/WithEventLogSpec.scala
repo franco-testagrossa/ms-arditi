@@ -33,7 +33,7 @@ class WithEventLogSpec extends org.scalatest.WordSpec {
 
     var state: State[A]
     override def receiveCommand: Receive = {
-      case cmd: AggregateCommand =>
+      case cmd: Commands[_] =>
 
     }
 

@@ -7,7 +7,9 @@ import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.mo
 import org.joda.time.DateTime
 import scalaz._
 
-trait AccountRulesWithMockDB extends AccountCommands with AccountRulesV1 {
+trait AccountRulesWithMockDB extends AccountRulesV1 {
+
+  import AccountCommands._
 
   def transfer(from: String, to: String, amount: BigDecimal): Command[Unit] = for {
     _ <- debit(from, amount)
