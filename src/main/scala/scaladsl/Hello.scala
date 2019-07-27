@@ -3,7 +3,6 @@ import akka.actor.{ActorLogging, ActorRef, ActorSystem, PoisonPill, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
 import akka.persistence.PersistentActor
 
-import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 
@@ -118,8 +117,8 @@ class PAImpl extends PersistentActor with ActorLogging {
   }
 
   override def receiveRecover: Receive = {
-    case evt: PAImpl.Event =>
-      state += evt.id
+    case evt: PAImpl.Event => state += evt.id
+    // Snapshot
   }
 }
 

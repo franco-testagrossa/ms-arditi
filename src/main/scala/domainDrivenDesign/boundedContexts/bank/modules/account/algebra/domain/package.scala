@@ -1,6 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra
 
-import domainDrivenDesign.Abstractions.{Aggregate, Event}
+import domainDrivenDesign.Abstractions.{Aggregate, AggregateCompanion, Event, Command}
 
 package object domain {
   import org.joda.time.DateTime
@@ -13,15 +13,28 @@ package object domain {
                         dateOfOpening: DateTime,
                         dateOfClosing: Option[DateTime] = None,
                         balance: Balance = Balance()) extends Aggregate
+
+    object Account extends AggregateCompanion[Account] {
+      override def empty: Account = Account("id", "name", DateTime.now())
+    }
   }
 
   // this should exists inside the companion object for each persistent actor
+  object commands {
+    import model.Account
+
+    case class Close(id: String, closeDate: Option[DateTime], at: DateTime = DateTime.now()) extends Command[Account]
+    case class Credit(id: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Command[Account]
+    case class Open(id: String, name: String, openingDate: Option[DateTime], at: DateTime = DateTime.now()) extends Command[Account]
+    case class Debit(id: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Command[Account]
+  }
   object events {
     import model.Account
 
-    case class Closed(no: String, closeDate: Option[DateTime], at: DateTime = DateTime.now()) extends Event[Account]
-    case class Credited(no: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Event[Account]
-    case class Opened(no: String, name: String, openingDate: Option[DateTime], at: DateTime = DateTime.now()) extends Event[Account]
-    case class Debited(no: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Event[Account]
+    case class Closed(id: String, closeDate: Option[DateTime], at: DateTime = DateTime.now()) extends Event[Account]
+    case class Credited(id: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Event[Account]
+    case class Opened(id: String, name: String, openingDate: Option[DateTime], at: DateTime = DateTime.now()) extends Event[Account]
+    case class Debited(id: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Event[Account]
   }
+
 }

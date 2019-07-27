@@ -1,8 +1,8 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.interpreter
 
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain._
-import scalaz._
+import akka.persistence.PersistentActor
 import common.io.persistence.inMemoryEventStore
+import domainDrivenDesign.Abstractions._
 import scalaz.concurrent.Task
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
 
@@ -23,4 +23,32 @@ class WithEventLogSpec extends org.scalatest.WordSpec {
       withEventLog.main(Array())
     }
   }
+
+
+  // DSL IN ACTION
+  // Persistent entity for Aggregate Account
+  trait PersistentEntity[A <: Aggregate] extends PersistentActor {
+    val typeName = self.getClass.getSimpleName
+    override def persistenceId: String = typeName  + "-" + self.path.name
+
+    var state: State[A]
+    override def receiveCommand: Receive = {
+      case cmd: Command[A] =>
+
+    }
+
+    override def receiveRecover: Receive = {
+      case evt: Event[A] => state += evt
+    }
+  }
+
+  object CompanionPersistentEntity {
+
+    object PersistentEntityState extends State[Account] {
+      override def +[A](event: Event[A]): State[Account] = ???
+    }
+  }
 }
+
+
+
