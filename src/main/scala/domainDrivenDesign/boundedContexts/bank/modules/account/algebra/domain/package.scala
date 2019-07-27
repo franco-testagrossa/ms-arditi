@@ -1,6 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra
 
-import domainDrivenDesign.Abstractions.{Aggregate, AggregateCompanion, Event, Command}
+import domainDrivenDesign.Abstractions.{Aggregate, AggregateCompanion, Event}
 
 package object domain {
   import org.joda.time.DateTime
@@ -19,18 +19,8 @@ package object domain {
     }
   }
 
-  // this should exists inside the companion object for each persistent actor
-  object commands {
-    import model.Account
-
-    case class Close(id: String, closeDate: Option[DateTime], at: DateTime = DateTime.now()) extends Command[Account]
-    case class Credit(id: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Command[Account]
-    case class Open(id: String, name: String, openingDate: Option[DateTime], at: DateTime = DateTime.now()) extends Command[Account]
-    case class Debit(id: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Command[Account]
-  }
   object events {
     import model.Account
-
     case class Closed(id: String, closeDate: Option[DateTime], at: DateTime = DateTime.now()) extends Event[Account]
     case class Credited(id: String, amount: BigDecimal, at: DateTime = DateTime.now()) extends Event[Account]
     case class Opened(id: String, name: String, openingDate: Option[DateTime], at: DateTime = DateTime.now()) extends Event[Account]

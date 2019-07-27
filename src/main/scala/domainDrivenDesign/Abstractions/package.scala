@@ -4,16 +4,12 @@ package object Abstractions {
   /**
     * All aggregates need to have an id
     */
+  type AggregateRoot = String
   trait Aggregate {
-    type AggregateRoot = String
     def id: AggregateRoot
   }
   trait AggregateCompanion[A <: Aggregate ] {
     def empty: A
-  }
-
-  trait Command[A] {
-    def id: String
   }
 
   trait Event[A] {
@@ -21,15 +17,21 @@ package object Abstractions {
     def at: DateTime
   }
 
-  trait State[S <: Aggregate] {
-    def +[A](event: Event[A]): State[S]
+  // Commands Algebra
+  type Command[A] = scalaz.Free[Event, A]
+  trait Commands[A] {
+    implicit def liftCommand(event: Event[A]): Command[A] =
+      scalaz.Free.liftF[Event, A](event)
   }
 
-  // Commands Algebra
-  type CommandF[A] = scalaz.Free[Command, A]
-  trait Commands[A] {
-    implicit def liftCommand(command: Command[A]) =
-      scalaz.Free.liftF[Command, A](command)
+  trait State[S] {
+    def +[A](event: Event[A]): State[S]
+    def get: State[S]
+    def verify[A](command: AggregateCommand): Boolean
+  }
+
+  trait AggregateCommand {
+    def id: AggregateRoot
   }
 
   trait PersistentEffect[A] {

@@ -1,6 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.interpreter
 
-import domainDrivenDesign.Abstractions.{CommandF, Event}
+import domainDrivenDesign.Abstractions.{Command, Event}
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.AccountCommands
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter.AccountRulesV1
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
@@ -9,7 +9,7 @@ import scalaz._
 
 trait AccountRulesWithMockDB extends AccountCommands with AccountRulesV1 {
 
-  def transfer(from: String, to: String, amount: BigDecimal): CommandF[Unit] = for {
+  def transfer(from: String, to: String, amount: BigDecimal): Command[Unit] = for {
     _ <- debit(from, amount)
     _ <- credit(to, amount)
   } yield ()
@@ -30,7 +30,7 @@ trait AccountRulesWithMockDB extends AccountCommands with AccountRulesV1 {
       d <- debit(a.id, 50000)
     } yield d
 
-  def comp: CommandF[Account] =
+  def comp: Command[Account] =
     for {
       a <- open("a1", "debasish ghosh", Some(DateTime.now()))
       _ <- credit(a.id, 10000)

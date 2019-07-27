@@ -1,11 +1,10 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter
 
-import domainDrivenDesign.Abstractions.{ Command, EventStore }
+import domainDrivenDesign.Abstractions.{Command, Event, EventStore}
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
-import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.commands._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.events._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.algebra.AccountRules
-import scalaz.{ Scalaz, \/, ~> }
+import scalaz.{Scalaz, \/, ~>}
 import Scalaz._
 import org.joda.time.DateTime
 import scalaz.concurrent.Task
@@ -25,8 +24,8 @@ trait AccountRulesV1 extends AccountRules with EventStore[String] {
   import domainDrivenDesign.boundedContexts.bank.modules.account.interpreter.snapshot.AccountSnapshot._
 
   //val eventStore = InMemoryEventStore.apply
-  val step: Command ~> Task = new (Command ~> Task) {
-    override def apply[A](action: Command[A]): Task[A] = handleCommand(action)
+  val step: Event ~> Task = new (Event ~> Task) {
+    override def apply[A](action: Event[A]): Task[A] = handleCommand(action)
   }
 
   /*val step: Event ~> Task = new (Event ~> Task) {
@@ -73,33 +72,33 @@ trait AccountRulesV1 extends AccountRules with EventStore[String] {
     else id.right
   }
 
-  def handleCommand[A](e: Command[A]): Task[A] = e match {
+  def handleCommand[A](e: Event[A]): Task[A] = e match {
 
-    case o @ Open(id, name, odate, _) => Task {
+    case o @ Opened(id, name, odate, _) => Task {
       validateOpen(id).fold[Account](
         err => throw new RuntimeException(err),
         _ => {
           val a = Account(id, name, odate.get)
-          put(id, Opened(id, name, odate))
+          put(id, o)
           a
         })
     }
 
-    case d @ Debit(no, amount, _) => Task {
+    case d @ Debited(no, amount, _) => Task {
       validateDebit(no, amount).fold[Account](
         err => throw new RuntimeException(err),
         currentState => {
-          put(no, Debited(no, amount))
-          updateState(Debited(no, amount), currentState)(no)
+          put(no, d)
+          updateState(d, currentState)(no)
         })
     }
 
-    case r @ Credit(no, amount, _) => Task {
+    case r @ Credited(no, amount, _) => Task {
       validateCredit(no).fold[Account](
         err => throw new RuntimeException(err),
         currentState => {
-          put(no, Credited(no, amount))
-          updateState(Credited(no, amount), currentState)(no)
+          put(no, r)
+          updateState(r, currentState)(no)
         })
     }
 
