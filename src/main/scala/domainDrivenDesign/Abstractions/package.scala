@@ -32,13 +32,14 @@ package object Abstractions {
 
   trait Cmd[A] {
     def id: AggregateRoot
+    implicit def toEvent: Event[A]
   }
 
   case class Response[A](success: String, event: Event[A])
   type BsResponse[A] = \/[String, Response[A]]
   type BusinessRule[A] = (Cmd[A], State[A]) => BsResponse[A]
   trait BusinessRules[A] extends ((Cmd[A], State[A]) => BsResponse[A]) {
-    val rules: List[BusinessRule[A]]
+    val rules: List[BusinessRule[A]] // we can abstract out of List
     def apply(cmd: Cmd[A], state: State[A]): BsResponse[A] = {
       // traverse and rull all rules until we get an error
       def traverse(bag: BsResponse[A], st: State[A],

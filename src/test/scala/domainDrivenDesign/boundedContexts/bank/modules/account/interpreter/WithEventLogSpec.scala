@@ -24,13 +24,44 @@ class WithEventLogSpec extends ClusterArditiSpec {
     import akka.pattern.ask
     import scala.concurrent.duration._
     import akka.util.Timeout
+
     implicit val ec: ExecutionContextExecutor = system.dispatcher
     implicit val timeout: Timeout = Timeout(3 seconds)
     "succeed" in {
       //val testProbe = TestProbe()
       //val supervisor = new RestartActorSupervisorFactory
 
-      val aggregate = childActorOf(MyEntity.props(), "Account")
+      // yo quiero testear un actor ? no
+      // quiero testear la interfaz (contrato que presenta el actor)
+
+      trait InterfazAggregate
+      trait InterfazAggregateA extends InterfazAggregate {
+        def cmd1: String
+        def cmd2: Int
+      }
+
+      object InterfazAggregateAImpl extends InterfazAggregateA {
+        override def cmd1: String = "???"
+        override def cmd2: Int = 0
+      }
+
+      InterfazAggregateAImpl.cmd1
+
+
+      abstract class Prod extends PersistentActor {
+        import InterfazAggregateAImpl._
+      }
+
+
+
+
+      val aggregate: akka.actor.ActorRef =
+        childActorOf(MyEntity.props(), "Account")
+
+      aggregate ! Run("1")
+      aggregate ! Run("2")
+      aggregate ! Run("3")
+
 
       val result = for {
         a <- (aggregate ? Run("1")).mapTo[Response[Account]]
@@ -53,11 +84,29 @@ class WithEventLogSpec extends ClusterArditiSpec {
       import MyEntity._
       var state: State[Account] = MyState(Account("0", "MyEntity", DateTime.now))
       // use the state monad to alter the state
+
+      /*
+      val flow = for {
+        ev1 <- cmd1()
+        ev2 <- cmd2()
+        ev3 <- cmd3()
+      } yield ()
+       */
+
+      
+
       val events = Runned("0") :: Runned("1") :: Runned("3") :: Nil
       state = events.map(identity[Event[Account]]).foldLeft(state)(_+_)
-      println(state)
+      println(state.aggregate)
     }
   }
+
+  /*
+  1 Cmd => Validar el estado State
+    luego si el comando es valido de ser procesado
+    como se relacciona el commaand con la bussiess rule ?
+
+   */
 
   // "WithEventLog" ignore {
   //    object withEventLog extends App {

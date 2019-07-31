@@ -44,7 +44,9 @@ class MyEntity extends PersistentEntity[Account] {
 
 object MyEntity {
   // Cmds
-  case class Run(id: String) extends Cmd[Account]
+  case class Run(id: String) extends Cmd[Account] {
+    override implicit def toEvent: Event[Account] = Runned(id)
+  }
   // Events
   case class Runned(id: String, at: DateTime = DateTime.now) extends Event[Account]
   // BussinessRules

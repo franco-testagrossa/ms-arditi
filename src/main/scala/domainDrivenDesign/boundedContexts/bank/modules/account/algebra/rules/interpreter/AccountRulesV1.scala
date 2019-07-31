@@ -68,7 +68,7 @@ object AccountRulesV1 extends AccountRules with inMemoryEventStore {
   def handleCommand[A](e: Event[A]): Task[A] = e match {
 
     case o @ Opened(id, name, odate, _) => Task {
-      validateOpen(id).fold[Account](
+        validateOpen(id).fold[Account](
         err => throw new RuntimeException(err),
         _ => {
           val a = Account(id, name, odate.get)
