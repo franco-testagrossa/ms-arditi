@@ -5,26 +5,23 @@
 
 package poc
 
-import java.util.concurrent.atomic.AtomicReference
 
 import akka.{Done, NotUsed}
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.kafka.ConsumerMessage.{GroupTopicPartition, PartitionOffset, TransactionalMessage}
+import akka.kafka.ConsumerMessage.{PartitionOffset, TransactionalMessage}
 import akka.kafka.scaladsl.Consumer.{Control, DrainingControl}
 import akka.kafka.scaladsl.{Consumer, Producer, Transactional}
-import akka.kafka.testkit.scaladsl.EmbeddedKafkaLike
-import akka.kafka.{ConsumerMessage, ConsumerSettings, ProducerMessage, ProducerSettings, Subscriptions}
-import akka.stream.scaladsl.{Flow, Keep, RestartSource, Sink, Source}
+import akka.kafka.{ConsumerSettings, ProducerMessage, ProducerSettings, Subscriptions}
+import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.testkit.TestSubscriber
 import akka.stream.testkit.scaladsl.StreamTestKit.assertAllStagesStopped
 import akka.stream.testkit.scaladsl.TestSink
-import common.kafka.KafkaProducerActorLead.producerConfig
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord}
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import poc.kafka.{KafkaDeserializer, KafkaSerializer}
 import poc.objeto.AggregateObjeto
-import poc.objeto.AggregateObjeto.{GetState, StateObjeto, UpdateObligacion, UpdateSuccess}
+import poc.objeto.AggregateObjeto.{GetState, StateObjeto, UpdateObligacion}
 
 import scala.collection.immutable
 import scala.concurrent.{Await, Future}
