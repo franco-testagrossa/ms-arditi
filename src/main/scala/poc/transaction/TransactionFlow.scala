@@ -20,7 +20,7 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
     ConsumerSettings(system, new StringDeserializer, new KafkaDeserializer[A])
       .withBootstrapServers(KAFKA_BROKER)
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-      .withGroupId(DATA_GROUP)
+      .withGroupId(CONSUMER_GROUP)
 
   private def producerSettings[A]: ProducerSettings[String, A] =
     ProducerSettings(system, new StringSerializer, new KafkaSerializer[A])
@@ -35,7 +35,7 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
     val consumer = consumerSettings[A]
     val producer = producerSettings[C]
     Transactional
-      .source(consumer, Subscriptions.topics(Set(SOURCE_TOPIC)))
+      .source(consumer, Subscriptions.topics(SOURCE_TOPIC))
       .via(objeto)
       .map(mapper)
       .via(sujeto)

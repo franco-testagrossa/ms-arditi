@@ -9,7 +9,7 @@ class AppConfig(config: Config) {
 
   // KAFKA
   val KAFKA_BROKER: String = config.getString("kafka.brokers")
-  val DATA_GROUP: String = "DATA_GROUP"
-  val SOURCE_TOPIC: String = "sourceTopic"
-  val SINK_TOPIC: String = "sinkTopic"
+  val CONSUMER_GROUP: String = "CONSUMER_GROUP"
+  val SOURCE_TOPIC: String = "SOURCE_TOPIC"
+  val SINK_TOPIC: String = "SINK_TOPIC"
 }
