@@ -27,6 +27,11 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
         val logMsg = "[AggregateSujeto|{}][ObjetoUpdated|{}][deliveryId|{}]"
         log.info(logMsg, sujetoId, objetoId, deliveryId)
       }
+    case AggregateSujeto.GetState(_) =>
+      val replyTo = sender()
+      replyTo ! state
+      val logMsg = "[AggregateSujeto|{}][GetState|{}]"
+      log.error(logMsg, sujetoId, state.toString)
     case other =>
       val logMsg = "[AggregateSujeto|{}][WrongMsg|{}]"
       log.error(logMsg, sujetoId, other.toString)
@@ -56,6 +61,9 @@ object AggregateSujeto {
                            deliveryId: Long,
                            objetoId: String,
                            objeto: Double) extends Command
+
+  sealed trait Query { def sujetoId: String }
+  final case class GetState(sujetoId: String) extends Query
 
   sealed trait Response extends Product with Serializable {
     def deliveryId: Long
@@ -94,10 +102,12 @@ object AggregateSujeto {
   )
 
   val extractEntityId: ShardRegion.ExtractEntityId = {
+    case qry : Query => (qry.sujetoId, qry)
     case cmd : Command => (cmd.sujetoId, cmd)
   }
 
   def extractShardId(numberOfShards: Int): ShardRegion.ExtractShardId = {
+    case qry : Query => (qry.sujetoId.toLong % numberOfShards).toString
     case cmd : Command => (cmd.sujetoId.toLong % numberOfShards).toString
   }
 }

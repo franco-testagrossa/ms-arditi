@@ -27,6 +27,11 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
         val logMsg = "[AggregateObjeto|{}][ObligacionUpdated|{}][deliveryId|{}]"
         log.info(logMsg, objetoId, obligacionId, deliveryId)
       }
+    case AggregateObjeto.GetState(_) =>
+      val replyTo = sender()
+      replyTo ! state
+      val logMsg = "[AggregateObjeto|{}][GetState|{}]"
+      log.error(logMsg, objetoId, state.toString)
     case other =>
       val logMsg = "[AggregateObjeto|{}][WrongMsg|{}]"
       log.error(logMsg, objetoId, other.toString)
@@ -57,10 +62,15 @@ object AggregateObjeto {
                                obligacionId: String,
                                obligacion: Double) extends Command
 
+  sealed trait Query { def objetoId: String }
+  final case class GetState(objetoId: String) extends Query
+
+
   sealed trait Response extends Product with Serializable {
     def deliveryId: Long
   }
   final case class UpdateSuccess(deliveryId: Long) extends Response
+
 
   sealed trait Event extends Product with Serializable { def name: String }
   final case class ObligacionUpdated(obligacionId: String, obligacion: Double) extends Event {
@@ -94,10 +104,12 @@ object AggregateObjeto {
   )
 
   val extractEntityId: ShardRegion.ExtractEntityId = {
+    case qry : Query => (qry.objetoId, qry)
     case cmd : Command => (cmd.objetoId, cmd)
   }
 
   def extractShardId(numberOfShards: Int): ShardRegion.ExtractShardId = {
+    case qry : Query => (qry.objetoId.toLong % numberOfShards).toString
     case cmd : Command => (cmd.objetoId.toLong % numberOfShards).toString
   }
 }
