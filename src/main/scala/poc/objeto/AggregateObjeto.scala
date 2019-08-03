@@ -98,7 +98,7 @@ object AggregateObjeto {
   }
 
   // Factory Method for AggregateObjeto
-  def start (system: ActorSystem)= ClusterSharding(system).start(
+  def start (implicit system: ActorSystem)= ClusterSharding(system).start(
     typeName        = typeName,
     entityProps     = this.props(),
     settings        = ClusterShardingSettings(system),

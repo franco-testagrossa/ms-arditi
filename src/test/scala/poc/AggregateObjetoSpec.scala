@@ -38,7 +38,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
 
     "should update obligacion with sharding" in {
       val (obligacionId, obligacionSaldo) = ("1", 200.50)
-      val objeto = AggregateObjeto.start(system)
+      val objeto = AggregateObjeto.start
 
       objeto ! AggregateObjeto.GetState("1")
       objeto ! AggregateObjeto.UpdateObligacion("1", 1L, obligacionId, obligacionSaldo)

@@ -13,6 +13,7 @@ import poc.objeto.AggregateObjeto
 
 import scala.concurrent.duration._
 import poc.model._
+import poc.sujeto.AggregateSujeto
 import poc.transaction.{ActorRefFlowStage, TransactionFlow}
 
 import scala.concurrent.ExecutionContextExecutor
@@ -27,16 +28,20 @@ object MainPoc {
   AkkaManagement(system).start()
   ClusterBootstrap(system).start()
 
-  private val aggregateObjeto: ActorRef = AggregateObjeto.start(system)
-  // private val aggregateSujeto: ActorRef = AggregateSujeto.start(system)
+  private val aggregateObjeto: ActorRef = AggregateObjeto.start
+  private val aggregateSujeto: ActorRef = AggregateSujeto.start
 
-  private val model = new ActorRefFlowStage[TX[ModelRequest], TX[ModelResponse]](aggregateObjeto)
-  private val txFlow = new TransactionFlow(system)
-  private val control = txFlow.controlGraph(model).run()
+  // Start Up TransactionFlow
+  private val objeto = actorRefStage[TX[ModelRequest], TX[ModelResponse]](aggregateObjeto)
+  private val sujeto = actorRefStage[TX[ModelResponse], TX[ModelResponse]](aggregateSujeto)
+  TransactionFlow.controlGraph(objeto, sujeto)(identity).run()
 
-  startRest(aggregateObjeto, config)
+  // Start Up Rest API
+  startRest(aggregateObjeto, aggregateSujeto, config)
 
-  private def startRest(service: ActorRef, config: Config): Unit = {
+  private def actorRefStage[A,B](actorRef: ActorRef): ActorRefFlowStage[TX[A], TX[B]] =
+    new ActorRefFlowStage[TX[A], TX[B]](actorRef)
+  private def startRest(objetoService: ActorRef, sujetoService: ActorRef, config: Config): Unit = {
     // TODO
     implicit val timeout = Timeout(10 seconds)
     // // complete(config.getString("application.api.hello-message"))
