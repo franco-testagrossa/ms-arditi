@@ -32,7 +32,8 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
 
-class TransactionSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamples) with EmbeddedKafkaLike {
+class TransactionSpec
+  extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamples) {
 
   override def sleepAfterProduce: FiniteDuration = 10.seconds
 
@@ -48,14 +49,7 @@ class TransactionSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamples)
     .withBootstrapServers(bootstrapServers)
 
 
-
-
-
-
-
   "Transactional sink" should "work" in assertAllStagesStopped {
-
-
     //val producerSettings = producerDefaults
     val sourceTopic = createTopic(1)
     val sinkTopic = createTopic(2)
@@ -70,7 +64,6 @@ class TransactionSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamples)
 
       response
     }
-
 
     val objetoAggregateRef = system.actorOf(AggregateObjeto.props(), "objeto")
 
@@ -101,12 +94,13 @@ class TransactionSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamples)
     }
     val actorRef = system.actorOf(Props(new EchoActor))
 
+
     // #transactionalSink
     val control =
       Transactional
         .source(consumerSettings, Subscriptions.topics(sourceTopic))
         .via(businessFlow(actorRef))
-        .map { msg =>
+        .map { msg: TransactionalMessage[String, UpdateObligacion] =>
           ProducerMessage.single(new ProducerRecord(sinkTopic, msg.record.key, msg.record.value), msg.partitionOffset)
         }
         .toMat(Transactional.sink(producerSettings, transactionalId))(Keep.both)
