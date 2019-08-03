@@ -112,8 +112,6 @@ class TransactionSpec
       .toMat(Sink.seq)(Keep.both)
       .run()
 
-    type Command = AggregateObjeto.Command
-
 
     import org.apache.kafka.clients.producer.{ProducerRecord}
     //var testProducer: KProducer[String, Command] = _

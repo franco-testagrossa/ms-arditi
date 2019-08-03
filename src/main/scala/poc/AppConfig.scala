@@ -4,12 +4,12 @@ import com.typesafe.config.Config
 
 class AppConfig(config: Config) {
   // API
-  val API_HOST: String = config.getString("application.api.host") // "0.0.0.0"
-  val API_PORT: Int = config.getInt("application.api.port") // 5000
+  lazy val API_HOST: String = config.getString("application.api.host") // "0.0.0.0"
+  lazy val API_PORT: Int = config.getInt("application.api.port") // 5000
 
   // KAFKA
-  val KAFKA_BROKER: String = config.getString("kafka.brokers")
-  val CONSUMER_GROUP: String = "CONSUMER_GROUP"
-  val SOURCE_TOPIC: String = "SOURCE_TOPIC"
-  val SINK_TOPIC: String = "SINK_TOPIC"
+  lazy val KAFKA_BROKER: String = config.getString("kafka.brokers")
+  lazy val CONSUMER_GROUP: String = "CONSUMER_GROUP"
+  lazy val SOURCE_TOPIC: String = "SOURCE_TOPIC"
+  lazy val SINK_TOPIC: String = "SINK_TOPIC"
 }

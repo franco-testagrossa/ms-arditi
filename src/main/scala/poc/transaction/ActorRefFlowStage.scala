@@ -3,6 +3,7 @@ package poc.transaction
 import akka.actor.ActorRef
 import akka.stream._
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+import poc.model.TX
 
 /**
   * Sends the elements of the stream to the given `ActorRef`.
@@ -41,7 +42,7 @@ class ActorRefFlowStage[In, Out](private val flowActor: ActorRef) extends GraphS
 
       override def onPush(): Unit = {
         val elementIn = grab(in)
-        tellFlowActor(StreamElementIn(elementIn))
+        tellFlowActor(StreamElementIn(elementIn)) // TODO
       }
     })
 
@@ -74,6 +75,15 @@ class ActorRefFlowStage[In, Out](private val flowActor: ActorRef) extends GraphS
 }
 
 object ActorRefFlowStage {
-  case class StreamElementIn[A](element: A)
-  case class StreamElementOut[A](element: A)
+  import poc.ddd._
+
+  case class StreamElementIn[A](element: Command) extends Command {
+    override def aggregateRoot: String = element.aggregateRoot
+    override def deliveryId: Long = element.deliveryId
+  }
+  case class StreamElementOut[A](element: Response)
+
+
+  def fromActor[A,B](actorRef: ActorRef): ActorRefFlowStage[TX[A], TX[B]] =
+    new ActorRefFlowStage[TX[A], TX[B]](actorRef)
 }

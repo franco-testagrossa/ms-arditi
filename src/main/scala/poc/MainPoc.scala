@@ -13,8 +13,11 @@ import poc.objeto.AggregateObjeto
 
 import scala.concurrent.duration._
 import poc.model._
+import poc.objeto.AggregateObjeto.{UpdateObligacion, UpdateSuccess}
 import poc.sujeto.AggregateSujeto
+import poc.transaction.ActorRefFlowStage.StreamElementIn
 import poc.transaction.{ActorRefFlowStage, TransactionFlow}
+import scalaz.Functor
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -34,16 +37,30 @@ object MainPoc {
   private val appConfig = new AppConfig(config)
 
   // Start Up TransactionFlow
-  private val objeto = actorRefStage[TX[ModelRequest], TX[ModelResponse]](aggregateObjeto)
-  private val sujeto = actorRefStage[TX[ModelResponse], TX[ModelResponse]](aggregateSujeto)
+  private val objeto =
+    ActorRefFlowStage.fromActor[
+      TX[AggregateObjeto.UpdateObligacion],
+      TX[AggregateObjeto.UpdateSuccess]
+    ](aggregateObjeto)
+
+  private val sujeto =
+    ActorRefFlowStage.fromActor[
+      TX[AggregateSujeto.UpdateObjeto],
+      TX[AggregateSujeto.UpdateSuccess]
+    ](aggregateSujeto)
+
   val txFlow = new TransactionFlow(appConfig)
-  txFlow.controlGraph(objeto, sujeto)(identity).run()
+
+  import TX._
+  private val flow = txFlow.controlGraph(objeto, sujeto) { objetoSuccess =>
+    implicitly[Functor[TX]].map(objetoSuccess) { updateSuccess =>
+      AggregateSujeto.UpdateObjeto("1", 1L, "1", 200.0)
+    }
+  }
+  flow.run()
 
   // Start Up Rest API
   startRest(aggregateObjeto, aggregateSujeto, appConfig)
-
-  private def actorRefStage[A,B](actorRef: ActorRef): ActorRefFlowStage[TX[A], TX[B]] =
-    new ActorRefFlowStage[TX[A], TX[B]](actorRef)
 
   private def startRest(objetoService: ActorRef, sujetoService: ActorRef, config: AppConfig): Unit = {
     import config._

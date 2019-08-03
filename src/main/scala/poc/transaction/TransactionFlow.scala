@@ -12,6 +12,7 @@ import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializ
 import poc.AppConfig
 import poc.kafka.{KafkaDeserializer, KafkaSerializer}
 import poc.model.TX
+import scalaz.Functor
 
 class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
   import config._
@@ -31,14 +32,14 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
   def controlGraph[A,B,C,D](
                     objeto: ActorRefFlowStage[TX[A], TX[B]],
                     sujeto: ActorRefFlowStage[TX[C], TX[D]]
-                  )(mapper: TX[B] => TX[C]): RunnableGraph[DrainingControl[Done]] = {
+                  )(mapper: B => C)(implicit functor: Functor[TX]): RunnableGraph[DrainingControl[Done]] = {
     val consumer = consumerSettings[A]
-    val producer = producerSettings[C]
+    val producer = producerSettings[D]
     Transactional
       .source(consumer, Subscriptions.topics(SOURCE_TOPIC))
-      .via(objeto)
-      .map(mapper)
-      .via(sujeto)
+        .via(objeto)
+        .map(fa => functor.map(fa)(mapper))
+        .via(sujeto)
       .map { msg =>
         ProducerMessage.single(
           new ProducerRecord(SINK_TOPIC, msg.record.key, msg.record.value), msg.partitionOffset

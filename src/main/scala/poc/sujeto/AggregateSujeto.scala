@@ -3,6 +3,8 @@ package poc.sujeto
 import akka.actor.{ActorLogging, ActorSystem, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
 import akka.persistence.{PersistentActor, SnapshotOffer}
+import poc.transaction.ActorRefFlowStage.{StreamElementIn, StreamElementOut}
+import poc.ddd._
 
 class AggregateSujeto extends PersistentActor with ActorLogging {
   import AggregateSujeto._
@@ -14,16 +16,16 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
   private var lastDeliveredId: Long = 0L // handling ordering
 
   override def receiveCommand: Receive = {
-    case UpdateObjeto(_, deliveryId, objetoId, objeto)
+    case StreamElementIn(UpdateObjeto(_, deliveryId, objetoId, objeto))
       if lastDeliveredId > deliveryId => // drop the message (ordering)
-    case UpdateObjeto(_, deliveryId, objetoId, objeto) =>
+    case StreamElementIn(UpdateObjeto(_, deliveryId, objetoId, objeto)) =>
       val evt = ObjetoUpdated(objetoId, objeto)
       persist(evt) { e =>
         state += e
         lastDeliveredId = lastDeliveredId max deliveryId
         // respond success
         val response = UpdateSuccess(deliveryId)
-        sender() ! response
+        sender() ! StreamElementOut(response)
         val logMsg = "[AggregateSujeto|{}][ObjetoUpdated|{}][deliveryId|{}]"
         log.info(logMsg, sujetoId, objetoId, deliveryId)
       }
@@ -47,30 +49,21 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
 }
 
 object AggregateSujeto {
+
   val typeName = "AggregateSujeto"
 
   def props(): Props = Props[AggregateSujeto]
 
-  // Protocolo de AggregateSujeto
-  sealed trait Command extends Product with Serializable {
-    def sujetoId: String
-    def deliveryId: Long
-  }
   final case class UpdateObjeto(
-                           sujetoId: String,
+                                 aggregateRoot: String,
                            deliveryId: Long,
                            objetoId: String,
                            objeto: Double) extends Command
 
-  sealed trait Query { def sujetoId: String }
-  final case class GetState(sujetoId: String) extends Query
+  final case class GetState(aggregateRoot: String) extends Query
 
-  sealed trait Response extends Product with Serializable {
-    def deliveryId: Long
-  }
   final case class UpdateSuccess(deliveryId: Long) extends Response
 
-  sealed trait Event extends Product with Serializable { def name: String }
   final case class ObjetoUpdated(objetoId: String, objeto: Double) extends Event {
     def name: String = "ObjetoUpdated"
   }
@@ -102,12 +95,12 @@ object AggregateSujeto {
   )
 
   val extractEntityId: ShardRegion.ExtractEntityId = {
-    case qry : Query => (qry.sujetoId, qry)
-    case cmd : Command => (cmd.sujetoId, cmd)
+    case qry : Query => (qry.aggregateRoot, qry)
+    case cmd : Command => (cmd.aggregateRoot, cmd)
   }
 
   def extractShardId(numberOfShards: Int): ShardRegion.ExtractShardId = {
-    case qry : Query => (qry.sujetoId.toLong % numberOfShards).toString
-    case cmd : Command => (cmd.sujetoId.toLong % numberOfShards).toString
+    case qry : Query => (qry.aggregateRoot.toLong % numberOfShards).toString
+    case cmd : Command => (cmd.aggregateRoot.toLong % numberOfShards).toString
   }
 }
