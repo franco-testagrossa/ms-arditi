@@ -32,6 +32,9 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
       replyTo ! state
       val logMsg = "[AggregateObjeto|{}][GetState|{}]"
       log.error(logMsg, objetoId, state.toString)
+
+    case str:String => sender() ! "HELLO SHIT" + str
+
     case other =>
       val logMsg = "[AggregateObjeto|{}][WrongMsg|{}]"
       log.error(logMsg, objetoId, other.toString)

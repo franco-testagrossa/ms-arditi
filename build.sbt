@@ -110,3 +110,7 @@ libraryDependencies += "com.typesafe.akka" %% "akka-cluster-sharding-typed" % "2
 
 
 
+libraryDependencies += "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.23" % Test
+libraryDependencies += "com.typesafe.akka" %% "akka-stream-kafka-testkit" % "1.0.5"
+
+

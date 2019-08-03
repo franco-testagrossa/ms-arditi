@@ -22,6 +22,6 @@ object KafkaProducerActorLead extends WriteOrientedActorSystem {
 
   private val config = ConfigFactory.load()
   private val producerConfig = config.getConfig("akka.kafka.producer")
-  val producerSettings = ProducerSettings(producerConfig, new StringSerializer, new StringSerializer)
+  val producerSettings: ProducerSettings[String, String] = ProducerSettings(producerConfig, new StringSerializer, new StringSerializer)
 
 }
