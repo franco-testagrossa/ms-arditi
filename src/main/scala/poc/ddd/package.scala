@@ -13,5 +13,4 @@ package object ddd {
   }
 
   trait Event extends Product with Serializable { def name: String }
-
 }

@@ -3,7 +3,6 @@ package poc.sujeto
 import akka.actor.{ActorLogging, ActorSystem, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import poc.transaction.ActorRefFlowStage.{StreamElementIn, StreamElementOut}
 import poc.ddd._
 
 class AggregateSujeto extends PersistentActor with ActorLogging {
@@ -16,16 +15,16 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
   private var lastDeliveredId: Long = 0L // handling ordering
 
   override def receiveCommand: Receive = {
-    case StreamElementIn(UpdateObjeto(_, deliveryId, objetoId, objeto))
+    case UpdateObjeto(_, deliveryId, objetoId, objeto)
       if lastDeliveredId > deliveryId => // drop the message (ordering)
-    case StreamElementIn(UpdateObjeto(_, deliveryId, objetoId, objeto)) =>
+    case UpdateObjeto(_, deliveryId, objetoId, objeto) =>
       val evt = ObjetoUpdated(objetoId, objeto)
       persist(evt) { e =>
         state += e
         lastDeliveredId = lastDeliveredId max deliveryId
         // respond success
         val response = UpdateSuccess(deliveryId)
-        sender() ! StreamElementOut(response)
+        sender() ! response
         val logMsg = "[AggregateSujeto|{}][ObjetoUpdated|{}][deliveryId|{}]"
         log.info(logMsg, sujetoId, objetoId, deliveryId)
       }

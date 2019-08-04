@@ -2,7 +2,6 @@ package poc
 
 import akka.actor.Kill
 import poc.objeto.AggregateObjeto
-import poc.transaction.ActorRefFlowStage.{StreamElementIn, StreamElementOut}
 import sagas.utils.{ClusterArditiSpec, RestartActorSupervisorFactory}
 
 import scala.concurrent.duration._
@@ -17,7 +16,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
       val objeto = supervisor.create(AggregateObjeto.props(), "AggregateObjeto-1")
 
       objeto ! AggregateObjeto.GetState("1")
-      objeto ! StreamElementIn(AggregateObjeto.UpdateObligacion("1", 1L, obligacionId, obligacionSaldo))
+      objeto ! AggregateObjeto.UpdateObligacion("1", 1L, obligacionId, obligacionSaldo)
       objeto ! Kill
       Thread.sleep(200)
       objeto ! AggregateObjeto.GetState("1")
@@ -28,7 +27,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
             if saldo == 0 && obligaciones.isEmpty => true
         }
         expectMsgPF() {
-          case StreamElementOut(AggregateObjeto.UpdateSuccess(1L)) => true
+          case AggregateObjeto.UpdateSuccess(1L) => true
         }
         expectMsgPF() {
           case AggregateObjeto.StateObjeto(saldo, obligaciones)
@@ -42,7 +41,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
       val objeto = AggregateObjeto.start
 
       objeto ! AggregateObjeto.GetState("1")
-      objeto ! StreamElementIn(AggregateObjeto.UpdateObligacion("1", 1L, obligacionId, obligacionSaldo))
+      objeto ! AggregateObjeto.UpdateObligacion("1", 1L, obligacionId, obligacionSaldo)
 //      objeto ! Kill
 //      Thread.sleep(200)
       objeto ! AggregateObjeto.GetState("1")
@@ -53,7 +52,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
             if saldo == 0 && obligaciones.isEmpty => true
         }
         expectMsgPF() {
-          case StreamElementOut(AggregateObjeto.UpdateSuccess(1L)) => true
+          case AggregateObjeto.UpdateSuccess(1L) => true
         }
         expectMsgPF() {
           case AggregateObjeto.StateObjeto(saldo, obligaciones)
