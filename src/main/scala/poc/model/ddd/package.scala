@@ -1,4 +1,4 @@
-package poc
+package poc.model
 
 package object ddd {
   trait Command extends Product with Serializable {

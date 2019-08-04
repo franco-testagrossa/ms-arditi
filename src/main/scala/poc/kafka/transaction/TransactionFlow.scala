@@ -1,4 +1,4 @@
-package poc.transaction
+package poc.kafka.transaction
 
 import akka.Done
 import akka.actor.{ActorRef, ActorSystem}
@@ -6,19 +6,19 @@ import akka.kafka.{ConsumerMessage, ConsumerSettings, ProducerMessage, ProducerS
 import akka.kafka.scaladsl.Consumer.DrainingControl
 import akka.kafka.scaladsl.Transactional
 import akka.stream.WatchedActorTerminatedException
-import akka.stream.scaladsl.{Flow, FlowOps, Keep, RunnableGraph}
+import akka.stream.scaladsl.{Keep, RunnableGraph}
 import akka.util.Timeout
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import poc.AppConfig
 import poc.kafka.{KafkaDeserializer, KafkaSerializer}
-import poc.objeto.AggregateObjeto
-import poc.objeto.AggregateObjeto.UpdateObligacion
-import poc.sujeto.AggregateSujeto
 
 import scala.concurrent.ExecutionContext
 import akka.pattern.ask
+import poc.model.objeto.AggregateObjeto
+import poc.model.objeto.AggregateObjeto.UpdateObligacion
+import poc.model.sujeto.AggregateSujeto
 
 
 class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {

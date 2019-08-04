@@ -1,9 +1,9 @@
-package poc.sujeto
+package poc.model.sujeto
 
 import akka.actor.{ActorLogging, ActorSystem, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
 import akka.persistence.{PersistentActor, SnapshotOffer}
-import poc.ddd._
+import poc.model.ddd._
 
 class AggregateSujeto extends PersistentActor with ActorLogging {
   import AggregateSujeto._

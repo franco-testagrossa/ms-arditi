@@ -20,8 +20,8 @@ import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord}
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import poc.kafka.{KafkaDeserializer, KafkaSerializer}
-import poc.objeto.AggregateObjeto
-import poc.objeto.AggregateObjeto.{GetState, StateObjeto, UpdateObligacion}
+import poc.model.objeto.AggregateObjeto
+import poc.model.sujeto.AggregateSujeto
 
 import scala.collection.immutable
 import scala.concurrent.{Await, Future}
@@ -36,13 +36,13 @@ class TransactionSpec
 
 
   val consumerSettings = ConsumerSettings(system,
-    new StringDeserializer, new KafkaDeserializer[UpdateObligacion])
+    new StringDeserializer, new KafkaDeserializer[AggregateObjeto.UpdateObligacion])
     .withBootstrapServers(bootstrapServers)
     .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     .withGroupId(createGroupId())
 
   val producerSettings = ProducerSettings(
-    system, new StringSerializer, new KafkaSerializer[UpdateObligacion])
+    system, new StringSerializer, new KafkaSerializer[AggregateObjeto.UpdateObligacion])
     .withBootstrapServers(bootstrapServers)
 
 
@@ -97,7 +97,7 @@ class TransactionSpec
       Transactional
         .source(consumerSettings, Subscriptions.topics(sourceTopic))
         .via(businessFlow(actorRef))
-        .map { msg: TransactionalMessage[String, UpdateObligacion] =>
+        .map { msg: TransactionalMessage[String, AggregateObjeto.UpdateObligacion] =>
           ProducerMessage.single(new ProducerRecord(sinkTopic, msg.record.key, msg.record.value), msg.partitionOffset)
         }
         .toMat(Transactional.sink(producerSettings, transactionalId))(Keep.both)
@@ -113,7 +113,7 @@ class TransactionSpec
       .run()
 
 
-    import org.apache.kafka.clients.producer.{ProducerRecord}
+    import org.apache.kafka.clients.producer.ProducerRecord
     //var testProducer: KProducer[String, Command] = _
     def produce(topic: String, range: immutable.Seq[AggregateObjeto.UpdateObligacion]): Future[Done] =
       Source(range)
@@ -173,7 +173,7 @@ class TransactionSpec
     println()
     println("STATE")
 
-    (objetoAggregateRef ? GetState("1")).mapTo[StateObjeto].onComplete {
+    (objetoAggregateRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto].onComplete {
       case Failure(exception) =>
       case Success(value) =>     println(value)
 

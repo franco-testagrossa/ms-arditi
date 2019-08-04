@@ -7,14 +7,13 @@ import akka.management.scaladsl.AkkaManagement
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
-import poc.objeto.AggregateObjeto
 
 import scala.concurrent.duration._
-import poc.sujeto.AggregateSujeto
-import poc.transaction.TransactionFlow
-
 import scala.concurrent.ExecutionContextExecutor
 import poc.api.ApiRoutes
+import poc.kafka.transaction.TransactionFlow
+import poc.model.objeto.AggregateObjeto
+import poc.model.sujeto.AggregateSujeto
 
 object MainPoc {
   private lazy val config = ConfigFactory.load()

@@ -1,7 +1,7 @@
 package poc
 
 import akka.actor.Kill
-import poc.sujeto.AggregateSujeto
+import poc.model.sujeto.AggregateSujeto
 import sagas.utils.{ClusterArditiSpec, RestartActorSupervisorFactory}
 
 import scala.concurrent.duration._
