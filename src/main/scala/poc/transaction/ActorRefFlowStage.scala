@@ -4,29 +4,39 @@ import akka.actor.ActorRef
 import akka.stream._
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import poc.model.TX
+import poc.ddd.{Response, _}
+
+import scala.reflect.ClassTag
+
 
 /**
   * Sends the elements of the stream to the given `ActorRef`.
   * The target actor can emit elements at any time by sending a `StreamElementOut(elem)` message, which will
   * be emitted downstream when there is demand.
   */
-class ActorRefFlowStage[In, Out](private val flowActor: ActorRef) extends GraphStage[FlowShape[In, Out]] {
+class ActorRefFlowStage[A <: poc.ddd.Command, B <: poc.ddd.Response : ClassTag](private val flowActor: ActorRef) extends
+  GraphStage[FlowShape[TX[A], TX[B]]]
+{
 
   import ActorRefFlowStage._
+  import TX._
 
-  val in: Inlet[In] = Inlet("ActorFlowIn")
-  val out: Outlet[Out] = Outlet("ActorFlowOut")
+  val in: Inlet[TX[A]] = Inlet("ActorFlowIn")
+  val out: Outlet[TX[B]] = Outlet("ActorFlowOut")
+  var tx: TX[_] = _ // beware
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
     def stageActorReceive(messageWithSender: (ActorRef, Any)): Unit = {
-      def onElementOut(elemOut: Any): Unit = {
-        val elem = elemOut.asInstanceOf[Out]
+      def onElementOut(elemOut: B): Unit = {
+        val elem: TX[B] = transactionalMessageFunctor.map(tx) { a =>
+          elemOut
+        }
         emit(out, elem)
       }
 
       messageWithSender match {
-        case (_, StreamElementOut(elemOut)) =>
+        case (_, StreamElementOut(elemOut: B)) =>
           onElementOut(elemOut)
           pullIfNeeded()
           completeStageIfNeeded()
@@ -42,7 +52,8 @@ class ActorRefFlowStage[In, Out](private val flowActor: ActorRef) extends GraphS
 
       override def onPush(): Unit = {
         val elementIn = grab(in)
-        tellFlowActor(StreamElementIn(elementIn)) // TODO
+        tx = elementIn // beware
+        tellFlowActor(StreamElementIn(elementIn.record.value()))
       }
     })
 
@@ -70,20 +81,20 @@ class ActorRefFlowStage[In, Out](private val flowActor: ActorRef) extends GraphS
     }
   }
 
-  override def shape: FlowShape[In, Out] = FlowShape(in, out)
+  override def shape: FlowShape[TX[A], TX[B]] = FlowShape(in, out)
 
 }
 
 object ActorRefFlowStage {
   import poc.ddd._
 
-  case class StreamElementIn[A](element: Command) extends Command {
+  case class StreamElementIn[A <: Command](element: A) extends Command {
     override def aggregateRoot: String = element.aggregateRoot
     override def deliveryId: Long = element.deliveryId
   }
   case class StreamElementOut[A](element: Response)
 
 
-  def fromActor[A,B](actorRef: ActorRef): ActorRefFlowStage[TX[A], TX[B]] =
-    new ActorRefFlowStage[TX[A], TX[B]](actorRef)
+  def fromActor[A <: Command,B <: Response : ClassTag](actorRef: ActorRef): ActorRefFlowStage[A, B] =
+    new ActorRefFlowStage[A, B](actorRef)
 }

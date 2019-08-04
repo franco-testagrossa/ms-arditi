@@ -29,17 +29,18 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
 
   private def transactionalId: String = java.util.UUID.randomUUID().toString
 
-  def controlGraph[A,B,C,D](
-                    objeto: ActorRefFlowStage[TX[A], TX[B]],
-                    sujeto: ActorRefFlowStage[TX[C], TX[D]]
+  import poc.ddd._
+  def controlGraph[A <: Command ,B <: Response, C <: Command , D <: Response](
+                    objeto: ActorRefFlowStage[A, B],
+                    sujeto: ActorRefFlowStage[C, D]
                   )(mapper: B => C)(implicit functor: Functor[TX]): RunnableGraph[DrainingControl[Done]] = {
     val consumer = consumerSettings[A]
     val producer = producerSettings[D]
     Transactional
       .source(consumer, Subscriptions.topics(SOURCE_TOPIC))
-        .via(objeto)
-        .map(fa => functor.map(fa)(mapper))
-        .via(sujeto)
+         .via(objeto)
+         .map(fa => functor.map(fa)(mapper))
+         .via(sujeto)
       .map { msg =>
         ProducerMessage.single(
           new ProducerRecord(SINK_TOPIC, msg.record.key, msg.record.value), msg.partitionOffset

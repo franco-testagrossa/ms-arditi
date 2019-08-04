@@ -39,23 +39,21 @@ object MainPoc {
   // Start Up TransactionFlow
   private val objeto =
     ActorRefFlowStage.fromActor[
-      TX[AggregateObjeto.UpdateObligacion],
-      TX[AggregateObjeto.UpdateSuccess]
+      AggregateObjeto.UpdateObligacion,
+      AggregateObjeto.UpdateSuccess
     ](aggregateObjeto)
 
   private val sujeto =
     ActorRefFlowStage.fromActor[
-      TX[AggregateSujeto.UpdateObjeto],
-      TX[AggregateSujeto.UpdateSuccess]
+      AggregateSujeto.UpdateObjeto,
+      AggregateSujeto.UpdateSuccess
     ](aggregateSujeto)
 
   val txFlow = new TransactionFlow(appConfig)
 
   import TX._
   private val flow = txFlow.controlGraph(objeto, sujeto) { objetoSuccess =>
-    implicitly[Functor[TX]].map(objetoSuccess) { updateSuccess =>
       AggregateSujeto.UpdateObjeto("1", 1L, "1", 200.0)
-    }
   }
   flow.run()
 
