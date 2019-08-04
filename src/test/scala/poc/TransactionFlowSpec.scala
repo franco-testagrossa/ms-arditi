@@ -35,10 +35,8 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
   override def sleepAfterProduce: FiniteDuration = 10.seconds
 
   "TransactionFlow" should "work" in assertAllStagesStopped {
-    val config: Config = ConfigFactory.parseString(
-      s"""
-        | kafka.brokers = $bootstrapServers
-      """.stripMargin)
+    import scala.collection.JavaConverters._
+    val config: Config = ConfigFactory.parseMap(Map("kafka.brokers" -> bootstrapServers).asJava)
     val appConfig = new AppConfig(config)
     val aggregateObjeto: ActorRef = AggregateObjeto.start
     val aggregateSujeto: ActorRef = AggregateSujeto.start
