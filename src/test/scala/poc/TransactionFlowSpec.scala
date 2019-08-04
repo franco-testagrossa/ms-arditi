@@ -7,7 +7,7 @@ import akka.stream.scaladsl.Source
 import akka.stream.testkit.scaladsl.StreamTestKit.assertAllStagesStopped
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.kafka.clients.producer.ProducerRecord
-import poc.kafka.transaction.TransactionFlow
+import poc.transaction.TransactionFlow
 import poc.model.objeto.AggregateObjeto
 import poc.model.sujeto.AggregateSujeto
 

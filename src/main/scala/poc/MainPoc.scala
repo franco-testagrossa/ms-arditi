@@ -11,7 +11,7 @@ import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContextExecutor
 import poc.api.ApiRoutes
-import poc.kafka.transaction.TransactionFlow
+import poc.transaction.TransactionFlow
 import poc.model.objeto.AggregateObjeto
 import poc.model.sujeto.AggregateSujeto
 

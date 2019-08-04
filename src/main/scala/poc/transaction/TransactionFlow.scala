@@ -1,4 +1,4 @@
-package poc.kafka.transaction
+package poc.transaction
 
 import akka.Done
 import akka.actor.{ActorRef, ActorSystem}
