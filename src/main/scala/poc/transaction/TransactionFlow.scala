@@ -23,7 +23,7 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
       .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
       .withGroupId(CONSUMER_GROUP)
 
-  private def producerSettings[A]: ProducerSettings[String, A] =
+  def producerSettings[A]: ProducerSettings[String, A] =
     ProducerSettings(system, new StringSerializer, new KafkaSerializer[A])
       .withBootstrapServers(KAFKA_BROKER)
 

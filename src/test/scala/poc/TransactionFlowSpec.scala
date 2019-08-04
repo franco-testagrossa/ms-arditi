@@ -60,5 +60,32 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
         AggregateSujeto.UpdateObjeto("1", 1L, "1", 200.0)
     }
     flow.run()
+
+
+    val obligacion = AggregateObjeto.UpdateObligacion("1", 1L, "1", 100)
+    val range = immutable.Seq(
+      obligacion.copy(deliveryId = 1),
+      obligacion.copy(deliveryId = 2),
+      obligacion.copy(deliveryId = 3),
+      obligacion.copy(deliveryId = 4),
+      obligacion.copy(deliveryId = 5),
+      obligacion.copy(deliveryId = 6),
+      obligacion.copy(deliveryId = 7),
+      obligacion.copy(deliveryId = 8),
+      obligacion.copy(deliveryId = 9),
+      obligacion.copy(obligacion = 2, deliveryId = 10),
+    )
+
+    def produce(topic: String, range: immutable.Seq[AggregateObjeto.UpdateObligacion]): Future[Done] =
+      Source(range)
+        // NOTE: If no partition is specified but a key is present a partition will be chosen
+        // using a hash of the key. If neither key nor partition is present a partition
+        // will be assigned in a round-robin fashion.
+        .map(n => new ProducerRecord(topic, partition0, DefaultKey, n))
+        .runWith(Producer.plainSink(txFlow.producerSettings))
+
+    awaitProduce(produce(appConfig.SOURCE_TOPIC, range))
   }
+
+
 }
