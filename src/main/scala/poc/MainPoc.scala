@@ -36,7 +36,12 @@ object MainPoc extends App {
   import scala.concurrent.duration._
   implicit val timeout: Timeout = Timeout(10 seconds)
   // private val flow = txFlow.controlGraph(objeto, sujeto) { objetoSuccess =>
-  //     AggregateSujeto.UpdateObjeto("1", 1L, "1", 200.0)
+  //     val sujetoId     = objetoSuccess.obligacion.sujetoId
+  //     val deliveryId   = objetoSuccess.deliveryId
+  //     val objetoId     = objetoSuccess.aggregateRoot
+  //     val lastUpdated  = objetoSuccess.obligacion.fechaUltMod
+  //     val saldo        = objetoSuccess.obligacion.saldoObligacion
+  //     AggregateSujeto.UpdateObjeto(sujetoId, deliveryId, saldo, objetoId, DateTime.now())
   // }
   // flow.run()
 

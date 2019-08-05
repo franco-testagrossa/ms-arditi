@@ -15,18 +15,39 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
   private var state: StateSujeto = StateSujeto.init()
 
   override def receiveCommand: Receive = {
-    case UpdateObjeto(_, deliveryId, objeto)
+    // received old command
+    case UpdateObjeto(_, deliveryId, saldo, objetoId, fechaUltMod)
       if state.objetos.exists { case (obId, ob) =>
-        obId.equals(objeto.objetoId) &&
-          ob.fechaUltMod.isAfter(objeto.fechaUltMod)
+        obId.equals(objetoId) &&
+          ob.fechaUltMod.isAfter(fechaUltMod)
       } =>
       // respond success
       val response = UpdateSuccess(deliveryId)
       sender() ! response
       val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}]"
-      log.info(logMsg, persistenceId, state.objetos(objeto.objetoId), deliveryId)
+      log.info(logMsg, persistenceId, state.objetos(objetoId), deliveryId)
 
-    case UpdateObjeto(_, deliveryId, objeto) =>
+    // update existing object
+    case UpdateObjeto(_, deliveryId, saldo, objetoId, fechaUltMod)
+      if state.objetos.exists { case (obId, ob) =>
+        obId.equals(objetoId) &&
+          ob.fechaUltMod.isBefore(fechaUltMod)
+      } =>
+      val oldObjeto = state.objetos(objetoId)
+      val objeto = oldObjeto.copy(saldoObjeto = saldo, fechaUltMod = fechaUltMod)
+      val evt = ObjetoUpdated(objeto)
+      persist(evt) { e =>
+        state += e
+        // respond success
+        val response = UpdateSuccess(deliveryId)
+        sender() ! response
+        val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}]"
+        log.info(logMsg, persistenceId, objeto, deliveryId)
+      }
+
+    // update not existing object
+    case UpdateObjeto(_, deliveryId, saldo, objetoId, fechaUltMod) =>
+      val objeto = Objeto(objetoId, saldo, fechaUltMod)
       val evt = ObjetoUpdated(objeto)
       persist(evt) { e =>
         state += e
@@ -66,7 +87,9 @@ object AggregateSujeto {
   final case class UpdateObjeto(
                            aggregateRoot: String,
                            deliveryId: Long,
-                           objeto: Objeto) extends Command
+                           saldo: Double,
+                           objetoId: String,
+                           fechaUltMod: DateTime) extends Command
 
   final case class GetState(aggregateRoot: String) extends Query
 

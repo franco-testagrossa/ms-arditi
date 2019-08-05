@@ -45,7 +45,7 @@ class ApiRoutes(objetoService: ActorRef, sujetoService: ActorRef)
         },
         post {
         complete{
-          (objetoService ? UpdateObligacion("1", 1, AggregateObjeto.Obligacion("A", 2000.0, DateTime.now())))
+          (objetoService ? UpdateObligacion("1", 1, AggregateObjeto.Obligacion("1", "2", 2000.0, DateTime.now())))
             .mapTo[AggregateObjeto.UpdateSuccess]
             .map { stateObjeto =>
               s"success : $stateObjeto"
@@ -72,7 +72,7 @@ class ApiRoutes(objetoService: ActorRef, sujetoService: ActorRef)
       },
       post {
         complete{
-          (sujetoService ? UpdateObjeto("1", 1, AggregateSujeto.Objeto("A", 2000.0, DateTime.now())))
+          (sujetoService ? UpdateObjeto("1", 1L, 2000.0, "1", DateTime.now()))
             .mapTo[AggregateSujeto.UpdateSuccess]
             .map { stateSujeto =>
               s"success : $stateSujeto"

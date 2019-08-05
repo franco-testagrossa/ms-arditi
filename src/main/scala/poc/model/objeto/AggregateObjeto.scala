@@ -14,24 +14,24 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
   private var state: StateObjeto = StateObjeto.init()
 
   override def receiveCommand: Receive = {
-    case UpdateObligacion(_, deliveryId, obligacion)
+    case UpdateObligacion(aggregateRoot, deliveryId, obligacion)
       if state.obligaciones.exists { case (obId, ob) =>
         obId.equals(obligacion.obligacionId) &&
           ob.fechaUltMod.isAfter(obligacion.fechaUltMod)
       } =>
       // respond success
-      val response = UpdateSuccess(deliveryId)
+      val existingObligacion = state.obligaciones(obligacion.obligacionId)
+      val response = UpdateSuccess(aggregateRoot, deliveryId, existingObligacion)
       sender() ! response
       val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}]"
-      log.info(logMsg, persistenceId, state.obligaciones(obligacion.obligacionId), deliveryId)
+      log.info(logMsg, persistenceId, existingObligacion, deliveryId)
 
-
-    case UpdateObligacion(_, deliveryId, obligacion) =>
+    case UpdateObligacion(aggregateRoot, deliveryId, obligacion) =>
       val evt = ObligacionUpdated(obligacion)
       persist(evt) { e =>
         state += e
         // respond success
-        val response = UpdateSuccess(deliveryId)
+        val response = UpdateSuccess(aggregateRoot, deliveryId, obligacion)
         sender() ! response
         val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}]"
         log.info(logMsg, persistenceId, obligacion, deliveryId)
@@ -70,7 +70,7 @@ object AggregateObjeto {
 
   final case class GetState(aggregateRoot: String) extends Query
 
-  final case class UpdateSuccess(deliveryId: Long) extends Response
+  final case class UpdateSuccess(aggregateRoot: String, deliveryId: Long, obligacion: Obligacion) extends Response
 
 
   final case class ObligacionUpdated(obligacion: Obligacion) extends Event {
@@ -79,6 +79,7 @@ object AggregateObjeto {
 
   // State
   final case class Obligacion(obligacionId: String,
+                              sujetoId: String,
                               saldoObligacion: Double,
                               fechaUltMod: DateTime)
 

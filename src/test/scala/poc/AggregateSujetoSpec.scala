@@ -18,7 +18,7 @@ class AggregateSujetoSpec extends ClusterArditiSpec {
       val objeto = supervisor.create(AggregateSujeto.props(), "AggregateSujeto-1")
 
       objeto ! AggregateSujeto.GetState("1")
-      objeto ! AggregateSujeto.UpdateObjeto("1", 1L, Objeto(objetoId, objetoSaldo, DateTime.now()))
+      objeto ! AggregateSujeto.UpdateObjeto("1", 1L, objetoSaldo, objetoId, DateTime.now())
       // TODO: Test receive recover
       // objeto ! Kill
       // Thread.sleep(200)
@@ -47,9 +47,11 @@ class AggregateSujetoSpec extends ClusterArditiSpec {
       val objeto = AggregateSujeto.start
 
       objeto ! AggregateSujeto.GetState("2")
-      objeto ! AggregateSujeto.UpdateObjeto("2", 1L, Objeto(objetoId, objetoSaldo, DateTime.now()))
-//      objeto ! Kill
-//      Thread.sleep(200)
+
+      objeto ! AggregateSujeto.UpdateObjeto("2", 1L, objetoSaldo, objetoId, DateTime.now())
+      // TODO: Test receive recover
+      // objeto ! Kill
+      // Thread.sleep(200)
       objeto ! AggregateSujeto.GetState("2")
 
       within(3 seconds) {

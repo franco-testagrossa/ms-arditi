@@ -14,12 +14,12 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
     "should update obligacion with supervisor" in {
       val supervisor = new RestartActorSupervisorFactory
 
-      val (obligacionId, obligacionSaldo) = ("1", 200.50)
+      val (obligacionId, obligacionSaldo, sujetoId, objetoId) = ("1", 200.50, "999", "3")
       val objeto = supervisor.create(AggregateObjeto.props(), "AggregateObjeto-1")
 
       objeto ! AggregateObjeto.GetState("1")
       objeto ! AggregateObjeto.UpdateObligacion("1", 1L, AggregateObjeto.Obligacion(
-        obligacionId, obligacionSaldo, DateTime.now()
+        obligacionId, sujetoId, obligacionSaldo, DateTime.now()
       ))
       // TODO: Test receive recover
       // objeto ! Kill
@@ -32,7 +32,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
             if saldo == 0 && obligaciones.isEmpty => true
         }
         expectMsgPF() {
-          case AggregateObjeto.UpdateSuccess(1L) => true
+          case AggregateObjeto.UpdateSuccess(aggregateRoot, 1L, obligacion) => true
         }
         expectMsgPF() {
           case AggregateObjeto.StateObjeto(saldo, obligaciones)
@@ -45,12 +45,12 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
     }
 
     "should update obligacion with sharding" in {
-      val (obligacionId, obligacionSaldo) = ("2", 200.50)
+      val (obligacionId, obligacionSaldo, sujetoId, objetoId) = ("2", 200.50, "1000", "4")
       val objeto = AggregateObjeto.start
 
       objeto ! AggregateObjeto.GetState("2")
       objeto ! AggregateObjeto.UpdateObligacion("2", 1L, AggregateObjeto.Obligacion(
-        obligacionId, obligacionSaldo, DateTime.now()
+        obligacionId, sujetoId, obligacionSaldo, DateTime.now()
       ))
       objeto ! AggregateObjeto.GetState("2")
 
@@ -60,7 +60,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
             if saldo == 0 && obligaciones.isEmpty => true
         }
         expectMsgPF() {
-          case AggregateObjeto.UpdateSuccess(1L) => true
+          case AggregateObjeto.UpdateSuccess(aggregateRoot, 1L, obligacion) => true
         }
         expectMsgPF() {
           case AggregateObjeto.StateObjeto(saldo, obligaciones)
