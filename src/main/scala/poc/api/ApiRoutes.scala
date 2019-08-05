@@ -5,6 +5,7 @@ import akka.http.scaladsl.server.Directives.{complete, get, path, _}
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
+import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext
 import poc.model.objeto.AggregateObjeto
@@ -44,7 +45,7 @@ class ApiRoutes(objetoService: ActorRef, sujetoService: ActorRef)
         },
         post {
         complete{
-          (objetoService ? UpdateObligacion("1", 1, "A", 2000.0))
+          (objetoService ? UpdateObligacion("1", 1, AggregateObjeto.Obligacion("A", 2000.0, DateTime.now())))
             .mapTo[AggregateObjeto.UpdateSuccess]
             .map { stateObjeto =>
               s"success : $stateObjeto"
@@ -71,10 +72,10 @@ class ApiRoutes(objetoService: ActorRef, sujetoService: ActorRef)
       },
       post {
         complete{
-          (sujetoService ? UpdateObjeto("1", 1, "A", 2000.0))
+          (sujetoService ? UpdateObjeto("1", 1, AggregateSujeto.Objeto("A", 2000.0, DateTime.now())))
             .mapTo[AggregateSujeto.UpdateSuccess]
-            .map { stateObjeto =>
-              s"success : $stateObjeto"
+            .map { stateSujeto =>
+              s"success : $stateSujeto"
             }
             .recover { case e: Exception => s"Exception : $e" }
         }
