@@ -8,6 +8,7 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 
+import akka.util.Timeout
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContextExecutor
 import poc.api.ApiRoutes
@@ -15,7 +16,7 @@ import poc.transaction.TransactionFlow
 import poc.model.objeto.AggregateObjeto
 import poc.model.sujeto.AggregateSujeto
 
-object MainPoc {
+object MainPoc extends App {
   private lazy val config = ConfigFactory.load()
   private implicit val system: ActorSystem = ActorSystem("ClusterArditi")
   private implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -31,6 +32,8 @@ object MainPoc {
   private val appConfig = new AppConfig(config)
   val txFlow = new TransactionFlow(appConfig)
 
+  import akka.util.Timeout
+  import scala.concurrent.duration._
   implicit val timeout: Timeout = Timeout(10 seconds)
   // private val flow = txFlow.controlGraph(objeto, sujeto) { objetoSuccess =>
   //     AggregateSujeto.UpdateObjeto("1", 1L, "1", 200.0)
@@ -45,7 +48,7 @@ object MainPoc {
 
     implicit val timeout: Timeout = Timeout(10 seconds)
     val host = API_HOST
-    val port = API_PORT
+    val port = API_PORT + 1
 
     val httpClient = new ApiRoutes(objetoService, sujetoService)
     val route = httpClient.routes
