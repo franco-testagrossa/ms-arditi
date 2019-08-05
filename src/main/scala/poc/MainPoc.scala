@@ -8,8 +8,6 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 
-import akka.util.Timeout
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContextExecutor
 import poc.api.ApiRoutes
 import poc.transaction.TransactionFlow

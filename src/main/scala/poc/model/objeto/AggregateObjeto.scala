@@ -14,6 +14,7 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
   private var state: StateObjeto = StateObjeto.init()
 
   override def receiveCommand: Receive = {
+    // received old command
     case UpdateObligacion(aggregateRoot, deliveryId, obligacion)
       if state.obligaciones.exists { case (obId, ob) =>
         obId.equals(obligacion.obligacionId) &&
@@ -23,9 +24,32 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
       val existingObligacion = state.obligaciones(obligacion.obligacionId)
       val response = UpdateSuccess(aggregateRoot, deliveryId, existingObligacion)
       sender() ! response
-      val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}]"
+      val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}][Old]"
       log.info(logMsg, persistenceId, existingObligacion, deliveryId)
 
+    // update existing obligacion
+    case UpdateObligacion(aggregateRoot, deliveryId, obligacion)
+      if state.obligaciones.exists { case (obId, ob) =>
+        obId.equals(obligacion.obligacionId) &&
+          ob.fechaUltMod.isBefore(obligacion.fechaUltMod)
+      } =>
+      val oldObligacion = state.obligaciones(obligacion.obligacionId)
+      val newObligacion =
+        oldObligacion.copy(
+          saldoObligacion = oldObligacion.saldoObligacion + obligacion.saldoObligacion,
+          fechaUltMod = obligacion.fechaUltMod
+      )
+      val evt = ObligacionUpdated(obligacion)
+      persist(evt) { e =>
+        state += e
+        // respond success
+        val response = UpdateSuccess(aggregateRoot, deliveryId, obligacion)
+        sender() ! response
+        val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}][Existing]"
+        log.info(logMsg, persistenceId, newObligacion, deliveryId)
+      }
+
+    // update not existing obligacion
     case UpdateObligacion(aggregateRoot, deliveryId, obligacion) =>
       val evt = ObligacionUpdated(obligacion)
       persist(evt) { e =>
@@ -33,7 +57,7 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
         // respond success
         val response = UpdateSuccess(aggregateRoot, deliveryId, obligacion)
         sender() ! response
-        val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}]"
+        val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}][New]"
         log.info(logMsg, persistenceId, obligacion, deliveryId)
       }
 

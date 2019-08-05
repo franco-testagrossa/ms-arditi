@@ -24,7 +24,7 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
       // respond success
       val response = UpdateSuccess(deliveryId)
       sender() ! response
-      val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}]"
+      val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}][Old]"
       log.info(logMsg, persistenceId, state.objetos(objetoId), deliveryId)
 
     // update existing object
@@ -34,14 +34,14 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
           ob.fechaUltMod.isBefore(fechaUltMod)
       } =>
       val oldObjeto = state.objetos(objetoId)
-      val objeto = oldObjeto.copy(saldoObjeto = saldo, fechaUltMod = fechaUltMod)
+      val objeto = oldObjeto.copy(saldoObjeto = oldObjeto.saldoObjeto + saldo, fechaUltMod = fechaUltMod)
       val evt = ObjetoUpdated(objeto)
       persist(evt) { e =>
         state += e
         // respond success
         val response = UpdateSuccess(deliveryId)
         sender() ! response
-        val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}]"
+        val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}][Existing|{}]"
         log.info(logMsg, persistenceId, objeto, deliveryId)
       }
 
@@ -54,7 +54,7 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
         // respond success
         val response = UpdateSuccess(deliveryId)
         sender() ! response
-        val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}]"
+        val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}][New]"
         log.info(logMsg, persistenceId, objeto, deliveryId)
       }
 
