@@ -8,5 +8,5 @@ import akka.actor.ActorSystem
   * Tests which requires an ActorSystem should extend from ClusterArditiSpec
   */
 final object ClusterArditiSystem {
-  final lazy val system = ActorSystem("Spec")
+  final lazy val system = ActorSystem("ClusterArditi")
 }

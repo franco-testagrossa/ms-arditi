@@ -7,8 +7,10 @@ import akka.stream.scaladsl.Source
 import akka.stream.testkit.scaladsl.StreamTestKit.assertAllStagesStopped
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.joda.time.DateTime
 import poc.transaction.TransactionFlow
 import poc.model.objeto.AggregateObjeto
+import poc.model.objeto.AggregateObjeto.Obligacion
 import poc.model.sujeto.AggregateSujeto
 
 import scala.collection.immutable
@@ -29,23 +31,23 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
     val txFlow = new TransactionFlow(appConfig)
 
     val flow = txFlow.controlGraph(objeto, sujeto){ objetoSuccess =>
-        AggregateSujeto.UpdateObjeto("1", 1L, "1", 200.0)
+        AggregateSujeto.UpdateObjeto("1", 1L, AggregateSujeto.Objeto("1", 200.0, DateTime.now()))
     }
     flow.run()
 
 
-    val obligacion = AggregateObjeto.UpdateObligacion("1", 1L, "1", 100)
+    val obligacion = AggregateObjeto.UpdateObligacion("1", 1L, AggregateObjeto.Obligacion("1", 100, DateTime.now()))
     val range = immutable.Seq(
-      obligacion.copy(deliveryId = 1),
-      obligacion.copy(deliveryId = 2),
-      obligacion.copy(deliveryId = 3),
-      obligacion.copy(deliveryId = 4),
-      obligacion.copy(deliveryId = 5),
-      obligacion.copy(deliveryId = 6),
-      obligacion.copy(deliveryId = 7),
-      obligacion.copy(deliveryId = 8),
-      obligacion.copy(deliveryId = 9),
-      obligacion.copy(obligacion = 2, deliveryId = 10),
+      obligacion.copy(deliveryId = 1, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 2, obligacion = AggregateObjeto.Obligacion("3", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 3, obligacion = AggregateObjeto.Obligacion("3", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 4, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 5, obligacion = AggregateObjeto.Obligacion("1", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 6, obligacion = AggregateObjeto.Obligacion("1", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 7, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 8, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 9, obligacion = AggregateObjeto.Obligacion("3", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 10, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
     )
 
     def produce(topic: String, range: immutable.Seq[AggregateObjeto.UpdateObligacion]): Future[Done] =

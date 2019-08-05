@@ -19,6 +19,7 @@ import akka.stream.testkit.scaladsl.TestSink
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord}
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
+import org.joda.time.DateTime
 import poc.kafka.{KafkaDeserializer, KafkaSerializer}
 import poc.model.objeto.AggregateObjeto
 import poc.model.sujeto.AggregateSujeto
@@ -124,18 +125,18 @@ class TransactionSpec
         .runWith(Producer.plainSink(producerSettings))
 
 
-    val obligacion = AggregateObjeto.UpdateObligacion("1", 1L, "1", 100)
+    val obligacion = AggregateObjeto.UpdateObligacion("1", 1L, AggregateObjeto.Obligacion("1", 100, DateTime.now()))
     val range = immutable.Seq(
-      obligacion.copy(deliveryId = 1),
-      obligacion.copy(deliveryId = 2),
-      obligacion.copy(deliveryId = 3),
-      obligacion.copy(deliveryId = 4),
-      obligacion.copy(deliveryId = 5),
-      obligacion.copy(deliveryId = 6),
-      obligacion.copy(deliveryId = 7),
-      obligacion.copy(deliveryId = 8),
-      obligacion.copy(deliveryId = 9),
-      obligacion.copy(obligacion = 2, deliveryId = 10),
+      obligacion.copy(deliveryId = 1, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 2, obligacion = AggregateObjeto.Obligacion("3", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 3, obligacion = AggregateObjeto.Obligacion("3", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 4, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 5, obligacion = AggregateObjeto.Obligacion("1", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 6, obligacion = AggregateObjeto.Obligacion("1", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 7, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 8, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 9, obligacion = AggregateObjeto.Obligacion("3", 100, DateTime.now())),
+      obligacion.copy(deliveryId = 10, obligacion = AggregateObjeto.Obligacion("2", 100, DateTime.now())),
     )
     awaitProduce(produce(sourceTopic, range))
 
