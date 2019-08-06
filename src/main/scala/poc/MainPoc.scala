@@ -1,66 +1,61 @@
 package poc
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.http.scaladsl.Http
-import akka.management.cluster.bootstrap.ClusterBootstrap
-import akka.management.scaladsl.AkkaManagement
-import akka.stream.ActorMaterializer
-import akka.util.Timeout
-import com.typesafe.config.ConfigFactory
-
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ Await, ExecutionContextExecutor }
 import poc.api.ApiRoutes
 import poc.transaction.TransactionFlow
 import poc.model.objeto.AggregateObjeto
 import poc.model.sujeto.AggregateSujeto
+import akka.actor.{ ActorRef, ActorSystem }
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import akka.stream.ActorMaterializer
+import akka.util.Timeout
+import com.typesafe.config.{ Config, ConfigFactory }
+import org.joda.time.DateTime
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 object MainPoc extends App {
-  private lazy val config = ConfigFactory.load()
-  private implicit val system: ActorSystem = ActorSystem("ClusterArditi")
-  private implicit val materializer: ActorMaterializer = ActorMaterializer()
-  private implicit val executionContext: ExecutionContextExecutor = system.dispatcher
-
-  // Start Up Akka Cluster
-  AkkaManagement(system).start()
-  ClusterBootstrap(system).start()
-
-  private val objeto: ActorRef = AggregateObjeto.start
-  private val sujeto: ActorRef = AggregateSujeto.start
-
-  private val appConfig = new AppConfig(config)
-  val txFlow = new TransactionFlow(appConfig)
 
   import akka.util.Timeout
   import scala.concurrent.duration._
   implicit val timeout: Timeout = Timeout(10 seconds)
-  // private val flow = txFlow.controlGraph(objeto, sujeto) { objetoSuccess =>
-  //     val sujetoId     = objetoSuccess.obligacion.sujetoId
-  //     val deliveryId   = objetoSuccess.deliveryId
-  //     val objetoId     = objetoSuccess.aggregateRoot
-  //     val lastUpdated  = objetoSuccess.obligacion.fechaUltMod
-  //     val saldo        = objetoSuccess.obligacion.saldoObligacion
-  //     AggregateSujeto.UpdateObjeto(sujetoId, deliveryId, saldo, objetoId, DateTime.now())
-  // }
-  // flow.run()
 
-  // Start Up Rest API
-  startApi(objeto, sujeto, appConfig)
+  implicit val system: ActorSystem = ActorSystem("ClusterArditi")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  private def startApi(objetoService: ActorRef, sujetoService: ActorRef, config: AppConfig): Unit = {
-    import config._
+  val config: Config = ConfigFactory.load()
+  val address = config.getString("http.ip")
+  val port = config.getInt("http.port")
+  val nodeId = config.getString("clustering.ip")
 
-    implicit val timeout: Timeout = Timeout(10 seconds)
-    val host = API_HOST
-    val port = API_PORT + 1
+  private implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
-    val httpClient = new ApiRoutes(objetoService, sujetoService)
-    val route = httpClient.routes
+  private val objeto: ActorRef = AggregateObjeto.start
+  private val sujeto: ActorRef = AggregateSujeto.start
 
-    val _ = Http().bindAndHandle(route, host, port) map
-      { binding => println(s"Starting models observer on port ${binding.localAddress}") } recover {
-      case ex =>
-        println(s"Models observer could not bind to $host:$port/ ${ex.getMessage}")
-    }
-    ()
+  private val appConfig = new AppConfig(ConfigFactory.load())
+  val txFlow = new TransactionFlow(appConfig)
+
+  import scala.concurrent.duration._
+  val httpClient: ApiRoutes = new ApiRoutes(objeto, sujeto)
+  lazy val routes = httpClient.routes
+
+  val flow = txFlow.controlGraph(objeto, sujeto) { objetoSuccess =>
+    val sujetoId = objetoSuccess.obligacion.sujetoId
+    val deliveryId = objetoSuccess.deliveryId
+    val objetoId = objetoSuccess.aggregateRoot
+    val lastUpdated = objetoSuccess.obligacion.fechaUltMod
+    val saldo = objetoSuccess.obligacion.saldoObligacion
+    AggregateSujeto.UpdateObjeto(sujetoId, deliveryId, saldo, objetoId, DateTime.now())
   }
+  flow.run()
+
+  Http().bindAndHandle(routes, address, port)
+  println(s"Node $nodeId is listening at http://$address:$port")
+
+  Await.result(system.whenTerminated, Duration.Inf)
+
 }

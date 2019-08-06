@@ -50,6 +50,16 @@ lazy val ms_arditi =
             dockerUsername := Some("arditi")
         )
 
+
+
+mainClass in Compile := Some("poc.MainPoc")
+// mainClass in Compile := Some("com.elleflorio.cluster.playground.Server")
+dockerBaseImage := "java"
+version in Docker := "latest"
+dockerExposedPorts := Seq(8000, 8001)
+dockerEntrypoint := Seq("/opt/docker/bin/ms_arditi")
+
+
 // Command Aliases
 addCommandAlias("cd", "project")
 addCommandAlias("ls", "projects")
