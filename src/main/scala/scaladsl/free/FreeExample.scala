@@ -1,17 +1,17 @@
 package scaladsl.free
 
-import akka.actor.{Actor, ActorLogging, ActorPath, ActorRef, ActorSystem, Props}
+import akka.actor.{ Actor, ActorLogging, ActorPath, ActorRef, ActorSystem, Props }
 import akka.cluster.sharding.ShardRegion.Passivate
 import akka.persistence.PersistentActor
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import akka.util.Timeout
-import scaladsl.free.QuickExample.{as, future}
+import scaladsl.free.QuickExample.{ as, future }
 import scalaz.concurrent.Task
-import scalaz.{Free, Monad, ~>}
+import scalaz.{ Free, Monad, ~> }
 
-import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.{ Await, Future }
+import scala.util.{ Failure, Success }
 
 object FreeExample extends App {
   // Algebra
@@ -42,13 +42,13 @@ object FreeExample extends App {
       override def apply[A](fa: IO[A]): Task[A] =
         fa match {
           case PrintLn(str) => Task {
-              Console.println(str)
-                .asInstanceOf[A]
-            }
+            Console.println(str)
+              .asInstanceOf[A]
+          }
           case GetStr() => Task.now {
-              scala.io.StdIn.readLine()
-                .asInstanceOf[A]
-            }
+            scala.io.StdIn.readLine()
+              .asInstanceOf[A]
+          }
         }
     }
 
@@ -59,9 +59,9 @@ object FreeExample extends App {
   // Main - Program
   import IOServiceImpl._
   val printYourName: IOF[Unit] = for {
-    _    <- printLn("print your name")
+    _ <- printLn("print your name")
     name <- getStr()
-    _    <- printLn(name)
+    _ <- printLn(name)
   } yield ()
 
   val value: Task[Unit] =
@@ -141,7 +141,6 @@ object ActorDSL extends App {
     }
   }
 
-
   // Main
   object TheMain {
     import scala.concurrent.duration._
@@ -155,14 +154,13 @@ object ActorDSL extends App {
 
       val echoActor: ActorRef = as.actorOf(Props[EchoActor], "QuickActor")
       val result: Free[ActorF, String] = for {
-        _   <-  tell(echoActor, "A")
-        _   <-  tell(echoActor, "B")
-        _   <-  tell(echoActor, "C")
-        str <-  ask[String](echoActor, "C")
+        _ <- tell(echoActor, "A")
+        _ <- tell(echoActor, "B")
+        _ <- tell(echoActor, "C")
+        str <- ask[String](echoActor, "C")
       } yield str
 
       val eventualString = ActorFInterpreterPROD(result)
-
 
       val value: String = Await.result(eventualString, 3 seconds)
       println(value)
@@ -199,8 +197,8 @@ object AkkaStreamFlow extends App {
     Obligacion("2"),
     Obligacion("3")
   ))
-  .via(addObligacion(actorFlow))
-  .runWith(Sink.foreach(println))
+    .via(addObligacion(actorFlow))
+    .runWith(Sink.foreach(println))
 
   system.whenTerminated.onComplete {
     case Failure(exception) =>

@@ -1,10 +1,9 @@
 import PAImpl.Run
-import akka.actor.{ActorLogging, ActorRef, ActorSystem, PoisonPill, Props}
-import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
+import akka.actor.{ ActorLogging, ActorRef, ActorSystem, PoisonPill, Props }
+import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
 import akka.persistence.PersistentActor
 
-import scala.util.{Failure, Success}
-
+import scala.util.{ Failure, Success }
 
 object PAImplClient extends App {
 
@@ -84,14 +83,11 @@ Nos queremos abstraer de:
       - como cambia el estado ?
  */
 
-
-
 // type Receive = PartialFunction[Any, Unit]
 class PAImpl extends PersistentActor with ActorLogging {
   import PAImpl._
 
-  override def persistenceId: String = typeName  + "-" + self.path.name
-
+  override def persistenceId: String = typeName + "-" + self.path.name
 
   var state: String = "" // State.init
   override def receiveCommand: Receive = {
@@ -106,12 +102,13 @@ class PAImpl extends PersistentActor with ActorLogging {
        */
 
       log.info("cmd {}", cmd)
-      if(cmd.id > "0") {
+      if (cmd.id > "0") {
         persist(Runned(cmd.id)) { evt =>
           state += evt.id // state is updated
           sender() ! Some(state) // a Response (Some) is sent back to client
         }
-      } else {
+      }
+      else {
         sender() ! Some(state) // a Response (Some) is sent back to client
       }
   }
@@ -135,7 +132,7 @@ object PAImpl {
   case class Runned(id: String) extends Event
 
   // Factory Method for PAImpl
-  def start (system: ActorSystem)= ClusterSharding(system).start(
+  def start(system: ActorSystem) = ClusterSharding(system).start(
     typeName        = typeName,
     entityProps     = this.props(),
     settings        = ClusterShardingSettings(system),
@@ -144,11 +141,11 @@ object PAImpl {
   )
 
   val extractEntityId: ShardRegion.ExtractEntityId = {
-    case cmd : Command => (cmd.id, cmd)
+    case cmd: Command => (cmd.id, cmd)
   }
 
   def extractShardId(numberOfShards: Int): ShardRegion.ExtractShardId = {
-    case cmd : Command => (cmd.id.toLong % numberOfShards).toString
+    case cmd: Command => (cmd.id.toLong % numberOfShards).toString
   }
 }
 
