@@ -77,13 +77,15 @@ object AggregateObjeto extends ShardedEntity {
 
   final case class StateObjeto private (
       saldo:        Double,
-      obligaciones: Map[String, Obligacion]
+      obligaciones: Map[String, Obligacion],
+      sujetoIds: Set[String]
   ) {
     def +(event: Event): StateObjeto = event match {
       case ObligacionUpdated(obligacion: Obligacion) =>
         copy(
           saldo        = calculateSaldo(obligacion),
-          obligaciones = updateObligaciones(obligacion)
+          obligaciones = updateObligaciones(obligacion),
+          sujetoIds = sujetoIds + obligacion.sujetoId
         )
     }
 
@@ -101,7 +103,7 @@ object AggregateObjeto extends ShardedEntity {
     }
   }
   object StateObjeto {
-    def init(): StateObjeto = new StateObjeto(0, Map.empty[String, Obligacion])
+    def init(): StateObjeto = new StateObjeto(0, Map.empty[String, Obligacion], Set.empty[String])
   }
 
 }

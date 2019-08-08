@@ -34,6 +34,7 @@ object MainPoc extends App {
 
   private implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
+  private val obligacion: ActorRef = AggregateObjeto.start
   private val objeto: ActorRef = AggregateObjeto.start
   private val sujeto: ActorRef = AggregateSujeto.start
 
@@ -44,24 +45,8 @@ object MainPoc extends App {
   val httpClient: ApiRoutes = new ApiRoutes(objeto, sujeto)
   lazy val routes = httpClient.routes
 
-  val flow = txFlow.controlGraph(objeto, sujeto) { objetoSuccess =>
-    val sujetoId = objetoSuccess.obligacion.sujetoId
-    val deliveryId = objetoSuccess.deliveryId
-    val objetoId = objetoSuccess.aggregateRoot
-    val lastUpdated = objetoSuccess.obligacion.fechaUltMod
-    val saldo = objetoSuccess.obligacion.saldoObligacion
-    AggregateSujeto.UpdateObjeto(
+  val flow = txFlow.controlGraph(obligacion, objeto, sujeto)
 
-      aggregateRoot = sujetoId,
-      deliveryId = deliveryId,
-      objeto = Objeto(
-        objetoId = objetoId,
-        sujetoId=        sujetoId,
-        saldoObjeto= saldo,
-        fechaUltMod=     DateTime.now
-      )
-    )
-  }
   flow.run()
 
   Http().bindAndHandle(routes, address, port)

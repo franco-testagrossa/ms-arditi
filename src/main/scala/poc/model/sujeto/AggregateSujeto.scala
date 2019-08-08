@@ -70,11 +70,11 @@ object AggregateSujeto extends ShardedEntity {
 
   // State
   final case class Objeto(
-                               objetoId:    String,
-                               sujetoId:        String,
-                               saldoObjeto: Double,
-                               fechaUltMod:     DateTime
-                             )
+         objetoId:    String,
+         sujetoId:    String,
+         saldoObjeto: Double,
+         fechaUltMod:     DateTime
+       )
 
   final case class StateSujeto private (
                                          saldo:        Double,

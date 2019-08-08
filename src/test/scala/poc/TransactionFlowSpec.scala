@@ -105,18 +105,18 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
           objectState <- (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
           sujetoState <- (sujetoRef ? AggregateObjeto.GetState(sid.toString)).mapTo[AggregateObjeto.StateObjeto]
 
-        }
+        } yield ()
 
         for {
           objectState <- (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
           sujetoState <- (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
           objectState <- (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-        }
+        } yield ()
         val state = (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-        println(s"Expected saldo is: ${expectedSaldo * N * 2}, and saldo is ${a.saldo}")
+        println(s"Expected saldo is: ${expectedSaldo * N * 2}, and saldo is ${a}")
     }
 
-    val state = (objeto ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
+    val state = (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
     state.foreach { a =>
       println(s"Expected saldo is: ${expectedSaldo * N * 2}, and saldo is ${a.saldo}")
       assert(a.saldo == expectedSaldo * N * 2)
@@ -127,7 +127,7 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
       )
     }
   }
-  }
+
 
 
 }

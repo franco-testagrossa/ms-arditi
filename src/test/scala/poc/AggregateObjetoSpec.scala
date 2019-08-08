@@ -41,14 +41,14 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
 
       within(3 seconds) {
         expectMsgPF() {
-          case AggregateObjeto.StateObjeto(saldo, obligaciones)
+          case AggregateObjeto.StateObjeto(saldo, obligaciones, _)
             if saldo == 0 && obligaciones.isEmpty => true
         }
         expectMsgPF() {
           case AggregateObjeto.UpdateSuccess(_, 1L, _) => true
         }
         expectMsgPF() {
-          case AggregateObjeto.StateObjeto(saldo, obligaciones)
+          case AggregateObjeto.StateObjeto(saldo, obligaciones, _)
             if saldo == expectedSaldo => true
         }
       }
@@ -57,7 +57,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
       Thread.sleep(200)
     }
 
-    "should update objeto with sharding" in {
+    "should update objeto with cotitularidad" in {
       val objeto = AggregateObjeto.start
 
       import akka.pattern._
@@ -74,7 +74,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
               deliveryId = deliveryId,
               obligacion = Obligacion(
                 obligacionId = obligacionId.toString,
-                sujetoId= "1",
+                sujetoId= obligacionId.toString,
                 saldoObligacion= expectedSaldo,
                 fechaUltMod=     DateTime.now
               ))
@@ -88,7 +88,12 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
         assert(a.saldo == expectedSaldo * N * 2)
         assert(
           a.obligaciones.collect {
-            case (_, o@Obligacion(_, "1", saldo, _)) if saldo == expectedSaldo * N => o
+            case (_, o@Obligacion(_, _, saldo, _)) if saldo == expectedSaldo * N => o
+          }.size == 2
+        )
+        assert(
+          a.obligaciones.map {
+            case (_, o) => o.sujetoId
           }.size == 2
         )
       }

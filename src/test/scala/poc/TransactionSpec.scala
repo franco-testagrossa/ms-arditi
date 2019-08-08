@@ -63,7 +63,7 @@ class TransactionSpec
       response
     }
 
-    val objetoAggregateRef = system.actorOf(AggregateObjeto.props(), "objeto")
+    val objetoAggregateRef = system.actorOf(AggregateObjeto.props, "objeto")
 
     class EchoActor extends Actor with ActorLogging{
       override def receive: Receive = {
@@ -142,11 +142,11 @@ class TransactionSpec
     awaitProduce(produce(sourceTopic, range))
 
     control.shutdown().futureValue should be(Done)
-    control2.shutdown().futureValue should be(Done)
+    //control2.shutdown().futureValue should be(Done)
     // #transactionalSink
     control.drainAndShutdown()
     // #transactionalSink
-    result.futureValue should have size (range.length)
+    //result.futureValue should have size (range.length)
 
 
 
@@ -162,7 +162,7 @@ class TransactionSpec
     println("RESULT")
     println("RESULT")
     println("RESULT")
-    println(result.futureValue)
+   // println(result.futureValue)
     println("RESULT")
     println("RESULT")
     println("RESULT")
