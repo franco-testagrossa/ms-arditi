@@ -4,9 +4,9 @@ import akka.Done
 import akka.actor.{ActorRef, ActorSystem}
 import akka.kafka.{ConsumerMessage, ConsumerSettings, ProducerMessage, ProducerSettings, Subscriptions}
 import akka.kafka.scaladsl.Consumer.DrainingControl
-import akka.kafka.scaladsl.Transactional
+import akka.kafka.scaladsl.{Consumer, Transactional}
 import akka.stream.WatchedActorTerminatedException
-import akka.stream.scaladsl.{Keep, RunnableGraph}
+import akka.stream.scaladsl.{Keep, RunnableGraph, Source}
 import akka.util.Timeout
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -16,9 +16,14 @@ import poc.kafka.{KafkaDeserializer, KafkaSerializer}
 
 import scala.concurrent.ExecutionContext
 import akka.pattern.ask
+import org.joda.time.DateTime
 import poc.model.objeto.AggregateObjeto
-import poc.model.objeto.AggregateObjeto.UpdateObligacion
+import poc.model.objeto.AggregateObjeto.{Obligacion, UpdateObligacion}
+import poc.model.{objeto, obligacion, sujeto}
+import poc.model.obligacion.AggregateObligacion
+import poc.model.obligacion.AggregateObligacion.UpdateMovimiento
 import poc.model.sujeto.AggregateSujeto
+import poc.model.sujeto.AggregateSujeto.Objeto
 
 
 class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
@@ -36,20 +41,73 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
 
   private def transactionalId: String = java.util.UUID.randomUUID().toString
 
+  val g = { o: AggregateObligacion.UpdateSuccess =>
+    AggregateObjeto.UpdateObligacion(
+      aggregateRoot = o.movimiento.objetoId,
+      deliveryId =    o.deliveryId,
+      obligacion =    Obligacion(
+        obligacionId =     o.aggregateRoot,
+        sujetoId =         o.movimiento.sujetoId,
+        saldoObligacion =  o.movimiento.importe,
+        fechaUltMod =      o.movimiento.fechaUltMod
+      )
+    )
+  }
+  val f = { o: AggregateObjeto.UpdateSuccess =>
+    AggregateSujeto.UpdateObjeto(
+      aggregateRoot = o.obligacion.sujetoId,
+      deliveryId = o.deliveryId,
+      objeto = Objeto(
+        objetoId = o.aggregateRoot,
+        sujetoId = o.obligacion.sujetoId,
+        saldoObjeto = o.obligacion.saldoObligacion,
+        fechaUltMod = DateTime.now()
+      ))
+  }
   def controlGraph(
+                    obligacion: ActorRef,
                     objeto: ActorRef,
                     sujeto: ActorRef
-                  )(f: AggregateObjeto.UpdateSuccess => AggregateSujeto.UpdateObjeto)
+                  )
                   (implicit t: Timeout, ec: ExecutionContext): RunnableGraph[DrainingControl[Done]] = {
+
     val consumer = consumerSettings[UpdateObligacion]
     val producer = producerSettings[AggregateSujeto.UpdateSuccess]
-    Transactional
-      .source(consumer, Subscriptions.topics(SOURCE_TOPIC))
-      .watch(objeto)
-      .mapAsync(1) {
-        case txa: ConsumerMessage.TransactionalMessage[String, UpdateObligacion] =>
 
-          (objeto ? txa.record.value())
+    val transaction = Transactional
+      .source(consumer, Subscriptions.topics(SOURCE_TOPIC))
+
+    val consumerObligacion = consumerSettings[UpdateMovimiento]
+    val movimientoTransaction = Transactional
+      .source(consumerObligacion, Subscriptions.topics(SOURCE_TOPIC))
+
+    val obligacionStage = movimientoTransaction.watch(obligacion)
+      .mapAsync(1) {
+        case txa: ConsumerMessage.TransactionalMessage[String, UpdateMovimiento] =>
+
+          (obligacion ? txa.record.value())
+            .mapTo[AggregateObligacion.UpdateSuccess]
+            .map(x => (txa, x))
+      }
+      .mapError {
+        // the purpose of this recovery is to change the name of the stage in that exception
+        // we do so in order to help users find which stage caused the failure -- "the ask stage"
+        case ex: WatchedActorTerminatedException =>
+          throw new WatchedActorTerminatedException("ask()", ex.ref)
+      }
+      .named("ask_obligacion")
+
+    val objetoStage:
+      Source[(ConsumerMessage.TransactionalMessage[String, UpdateMovimiento],
+        AggregateObjeto.UpdateSuccess), Consumer.Control]
+    = obligacionStage.watch(objeto)
+      .mapAsync(1) {
+        case (
+          txa: ConsumerMessage.TransactionalMessage[String, UpdateMovimiento],
+          success: AggregateObligacion.UpdateSuccess
+          ) =>
+
+          (objeto ? g(success))
             .mapTo[AggregateObjeto.UpdateSuccess]
             .map(x => (txa, x))
       }
@@ -59,11 +117,15 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
         case ex: WatchedActorTerminatedException =>
           throw new WatchedActorTerminatedException("ask()", ex.ref)
       }
-      .named("ask_objeto")
-      .watch(sujeto)
+      .named("ask_sujeto")
+
+
+    val sujetoStage = objetoStage.watch(sujeto)
       .mapAsync(1) {
-        case (txa: ConsumerMessage.TransactionalMessage[String, UpdateObligacion],
-              success: AggregateObjeto.UpdateSuccess) =>
+        case (
+          txa: ConsumerMessage.TransactionalMessage[String, UpdateMovimiento],
+          success: AggregateObjeto.UpdateSuccess
+          ) =>
 
           (sujeto ? f(success))
             .mapTo[AggregateSujeto.UpdateSuccess]
@@ -76,15 +138,20 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
           throw new WatchedActorTerminatedException("ask()", ex.ref)
       }
       .named("ask_sujeto")
-      .map {
-        case (txa: ConsumerMessage.TransactionalMessage[String, UpdateObligacion],
-              msg: AggregateSujeto.UpdateSuccess) =>
+
+    val commitedStage = sujetoStage.map {
+        case (
+          txa: ConsumerMessage.TransactionalMessage[String, UpdateMovimiento],
+          success: AggregateSujeto.UpdateSuccess
+          ) =>
 
           ProducerMessage.single(
-            new ProducerRecord(SINK_TOPIC, txa.record.key, msg), txa.partitionOffset
+            new ProducerRecord(SINK_TOPIC, txa.record.key, success), txa.partitionOffset
           )
       }
       .toMat(Transactional.sink(producer, transactionalId))(Keep.both)
       .mapMaterializedValue(DrainingControl.apply)
+
+    commitedStage
   }
 }

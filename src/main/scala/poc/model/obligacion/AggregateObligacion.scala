@@ -70,7 +70,7 @@ object AggregateObligacion extends ShardedEntity {
   // State
   final case class Movimiento(
       evoId: String,
-      aggregateRoot: String, // objetoId
+      objetoId: String,
       sujetoId: String,
       importe: Double,
       tipoMovimiento: Char, // D | C

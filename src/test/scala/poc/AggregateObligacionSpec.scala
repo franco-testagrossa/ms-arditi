@@ -32,7 +32,7 @@ class AggregateObligacionSpec extends ClusterArditiSpec {
         deliveryId = 1L,
         movimiento = Movimiento(
           evoId = "1",
-          aggregateRoot = "1",
+          objetoId = "1",
           sujetoId = "1",
           importe = expectedSaldo,
           tipoMovimiento= 'C',
@@ -77,7 +77,7 @@ class AggregateObligacionSpec extends ClusterArditiSpec {
           deliveryId = N.toLong,
           movimiento = Movimiento(
             evoId = "1",
-            aggregateRoot = "1",
+            objetoId = "1",
             sujetoId = "1",
             importe = expectedSaldo,
             tipoMovimiento= 'C',
