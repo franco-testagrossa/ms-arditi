@@ -2,8 +2,9 @@ package poc
 
 import akka.Done
 import akka.actor.ActorRef
+import akka.kafka.Subscriptions
 import akka.kafka.scaladsl.{Consumer, Producer}
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.testkit.scaladsl.StreamTestKit.assertAllStagesStopped
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -24,7 +25,7 @@ import poc.model.obligacion
 
 class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamples) {
 
-  override def sleepAfterProduce: FiniteDuration = 10.seconds
+  override def sleepAfterProduce: FiniteDuration = 20.seconds
 
   "TransactionFlow" should "work" in assertAllStagesStopped {
     import scala.collection.JavaConverters._
@@ -35,28 +36,27 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
     val sujetoRef: ActorRef = AggregateSujeto.start
 
 
-
-
     def exampleMovimiento(
-       evoId: String,
-       objetoId: String,
-       sujetoId: String) = Movimiento(
+                           evoId: String,
+                           objetoId: String,
+                           sujetoId: String) = Movimiento(
       evoId,
       objetoId,
       sujetoId,
-      importe= 1,
-      tipoMovimiento= 'C',
-      fechaUltMod= DateTime.now
+      importe = 1,
+      tipoMovimiento = 'C',
+      fechaUltMod = DateTime.now
     )
+
     def updateObligacion(
                           evoId: String,
                           objetoId: String,
                           sujetoId: String,
                           aggregateRoot: String,
                           deliveryId: Long,
-                        ) =   UpdateMovimiento(
+                        ) = UpdateMovimiento(
       aggregateRoot: String,
-      deliveryId:    Long,
+      deliveryId: Long,
       movimiento = exampleMovimiento(evoId, objetoId, sujetoId)
     )
 
@@ -86,45 +86,31 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
         .map(n => new ProducerRecord(topic, partition0, DefaultKey, n))
         .runWith(Producer.plainSink(txFlow.producerSettings))
 
+    val flow = txFlow.controlGraph(obligacionRef, objetoRef, sujetoRef)
+    val control = flow.run()
+
     awaitProduce(produce(appConfig.SOURCE_TOPIC, requests))
 
+    control.shutdown().futureValue should be(Done)
+    control.drainAndShutdown()
 
-
-    val flow = txFlow.controlGraph(obligacionRef, objetoRef, sujetoRef)
-    flow
-      .run()
-      .streamCompletion
-      .foreach {
-      a =>
-
-        for {
-          oblid <- 1 to 3
-          objid <- 1 to 2
-          sid <- 1 to 2
-        } yield for {
-          objectState <- (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-          sujetoState <- (sujetoRef ? AggregateObjeto.GetState(sid.toString)).mapTo[AggregateObjeto.StateObjeto]
-
-        } yield ()
-
-        for {
-          objectState <- (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-          sujetoState <- (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-          objectState <- (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-        } yield ()
-        val state = (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-        println(s"Expected saldo is: ${expectedSaldo * N * 2}, and saldo is ${a}")
-    }
 
     val state = (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-    state.foreach { a =>
-      println(s"Expected saldo is: ${expectedSaldo * N * 2}, and saldo is ${a.saldo}")
-      assert(a.saldo == expectedSaldo * N * 2)
-      assert(
-        a.obligaciones.collect {
-          case (_, o@Obligacion(_, "1", saldo, _)) if saldo == expectedSaldo * N => o
-        }.size == 2
-      )
+    state.foreach{ s =>
+      println(s"Expected saldo is: ${s}")
+    }
+    val state2 = (objetoRef ? AggregateObjeto.GetState("2")).mapTo[AggregateObjeto.StateObjeto]
+    state2.foreach{ s =>
+      println(s"Expected saldo is: ${s}")
+    }
+
+    val state3 = (sujetoRef ? AggregateSujeto.GetState("1")).mapTo[AggregateSujeto.StateSujeto]
+    state3.foreach{ s =>
+      println(s"Expected saldo is: ${s}")
+    }
+    val state4 = (sujetoRef ? AggregateSujeto.GetState("2")).mapTo[AggregateSujeto.StateSujeto]
+    state4.foreach{ s =>
+      println(s"Expected saldo is: ${s}")
     }
   }
 

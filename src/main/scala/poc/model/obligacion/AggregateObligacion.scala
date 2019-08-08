@@ -23,7 +23,7 @@ class AggregateObligacion extends PersistentActor with ActorLogging {
         // respond success
         val response = UpdateSuccess(aggregateRoot, deliveryId, movimiento)
         sender() ! response
-        val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}][New]"
+        val logMsg = "[{}][MovimientoUpdated|{}][deliveryId|{}][New]"
         log.info(logMsg, persistenceId, movimiento, deliveryId)
       }
 

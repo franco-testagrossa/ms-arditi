@@ -21,7 +21,7 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
       persist(evt) { e =>
         state += e
         // respond success
-        val response = UpdateSuccess(aggregateRoot, deliveryId, obligacion)
+        val response = UpdateSuccess(aggregateRoot, deliveryId, obligacion, state.sujetoIds)
         sender() ! response
         val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}][New]"
         log.info(logMsg, persistenceId, obligacion, deliveryId)
@@ -61,7 +61,11 @@ object AggregateObjeto extends ShardedEntity {
 
   final case class GetState(aggregateRoot: String) extends Query
 
-  final case class UpdateSuccess(aggregateRoot: String, deliveryId: Long, obligacion: Obligacion) extends Response
+  final case class UpdateSuccess(
+          aggregateRoot: String,
+          deliveryId: Long,
+          obligacion: Obligacion,
+          sujetoIds: Set[String]) extends Response
 
   final case class ObligacionUpdated(obligacion: Obligacion) extends Event {
     def name: String = "ObligacionUpdated"
