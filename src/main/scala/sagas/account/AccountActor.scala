@@ -1,7 +1,7 @@
 package sagas.account
 
-import akka.actor.{ActorLogging, Props}
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.actor.{ ActorLogging, Props }
+import akka.persistence.{ PersistentActor, SnapshotOffer }
 import sagas.domain.Account
 
 object AccountActor {
@@ -54,27 +54,26 @@ object AccountActor {
 
       case MoneyFrozen(id, to, amount) =>
         val transaction = Transaction(id, account, to, amount)
-        copy(balance = balance - amount, inFlightTransaction = inFlightTransaction + (id -> transaction))
+        copy(balance             = balance - amount, inFlightTransaction = inFlightTransaction + (id -> transaction))
 
       case MoneyAdded(id, from, amount) =>
         val transaction = Transaction(id, from, account, amount)
-        copy(balance = balance + amount, finishedTransactions = finishedTransactions + (id -> transaction))
+        copy(balance              = balance + amount, finishedTransactions = finishedTransactions + (id -> transaction))
 
       case TransactionFinished(id) =>
         val transaction = inFlightTransaction(id)
         copy(
           finishedTransactions = finishedTransactions + (id -> transaction),
-          inFlightTransaction = inFlightTransaction - id
+          inFlightTransaction  = inFlightTransaction - id
         )
 
       case MoneyUnfrozen(id) =>
         val transaction = inFlightTransaction(id)
-        copy(balance = balance + transaction.amount, inFlightTransaction = inFlightTransaction - id)
+        copy(balance             = balance + transaction.amount, inFlightTransaction = inFlightTransaction - id)
 
     }
   }
 }
-
 
 class AccountActor(_active: Boolean, _balance: Long) extends PersistentActor with ActorLogging {
 

@@ -24,5 +24,7 @@ trait WriteOrientedActorSystem extends ActorSystemFactory {
       akka.discovery.method=config
       akka.management.http.hostname=127.0.0.$index
       akka.remote.artery.canonical.hostname=127.0.0.$index
-   """).withFallback(ConfigFactory.load("application.conf"))): ActorSystem = ActorSystem(name, config)
+   """
+      ).withFallback(ConfigFactory.load("application.conf"))
+  ): ActorSystem = ActorSystem(name, config)
 }

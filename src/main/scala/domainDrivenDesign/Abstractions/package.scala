@@ -1,12 +1,10 @@
 package domainDrivenDesign
 
-import scalaz.{-\/, \/, \/-}
+import scalaz.{ -\/, \/, \/- }
 import scalaz.Scalaz._
 
-
 package object Abstractions {
-  /**
-    * All aggregates need to have an id
+  /** All aggregates need to have an id
     */
   type AggregateRoot = String
   trait Aggregate {
@@ -48,7 +46,7 @@ package object Abstractions {
           case Nil => bag
           case rule :: rest => rule(cmd, st) match {
             case -\/(error) => error.left
-            case \/-(response@Response(_, ev)) =>
+            case \/-(response @ Response(_, ev)) =>
               traverse(response.right, st + ev, rest)
           }
         }

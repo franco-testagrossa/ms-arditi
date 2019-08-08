@@ -28,13 +28,13 @@ object TransactionManagerActor {
 
   // State
   case class TrxnMgrState(
-                           deliverySnapshot: AtLeastOnceDeliverySnapshot,
-                           transactionId:    Long                        = -1L,
-                           from:             Account                     = "",
-                           to:               Account                     = "",
-                           amount:           Long                        = 0L,
-                           failureReason:    String                      = ""
-                         ) {
+      deliverySnapshot: AtLeastOnceDeliverySnapshot,
+      transactionId:    Long                        = -1L,
+      from:             Account                     = "",
+      to:               Account                     = "",
+      amount:           Long                        = 0L,
+      failureReason:    String                      = ""
+  ) {
 
     def updated(event: Event): TrxnMgrState = event match {
       case TransactionInitiated(trxdId, from, to, amount) =>

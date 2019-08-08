@@ -50,7 +50,7 @@ class EventProcessor extends Actor with ActorLogging {
   }
 
   private def runQueryStream(): Unit = {
-    RestartSource.withBackoff(minBackoff = 500.millis, maxBackoff = 20.seconds, randomFactor = 0.1) { () =>
+    RestartSource.withBackoff(minBackoff   = 500.millis, maxBackoff = 20.seconds, randomFactor = 0.1) { () =>
       Source.fromFutureSource {
         readOffset().map { offset =>
           log.info("Starting stream for tag [{}] from offset [{}]", tag, offset)
@@ -70,7 +70,8 @@ class EventProcessor extends Actor with ActorLogging {
   private def readOffset(): Future[Offset] = {
     session.selectOne(
       s"SELECT timeUuidOffset FROM akka_cqrs_sample.offsetStore WHERE eventProcessorId = ? AND tag = ?",
-      eventProcessorId, tag).map(extractOffset)
+      eventProcessorId, tag
+    ).map(extractOffset)
   }
 
   private def extractOffset(maybeRow: Option[Row]): Offset = {
@@ -79,7 +80,8 @@ class EventProcessor extends Actor with ActorLogging {
         val uuid = row.getUUID("timeUuidOffset")
         if (uuid == null) {
           NoOffset
-        } else {
+        }
+        else {
           TimeBasedUUID(uuid)
         }
       case None => NoOffset

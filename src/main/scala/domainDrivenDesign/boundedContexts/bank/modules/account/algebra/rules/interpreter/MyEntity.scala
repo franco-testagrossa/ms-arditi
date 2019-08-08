@@ -1,6 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.interpreter
 
-import akka.actor.{ActorLogging, Props}
+import akka.actor.{ ActorLogging, Props }
 import akka.persistence.PersistentActor
 import domainDrivenDesign.Abstractions._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model.Account
@@ -12,7 +12,7 @@ import scalaz.\/
 // Persistent entity for Aggregate Account
 trait PersistentEntity[A] extends PersistentActor with ActorLogging {
   val typeName = self.getClass.getSimpleName
-  override def persistenceId: String = typeName  + "-" + self.path.name
+  override def persistenceId: String = typeName + "-" + self.path.name
 
   // interpreter: Interpreter[A]
   var state: State[A] // Option and None as default ?

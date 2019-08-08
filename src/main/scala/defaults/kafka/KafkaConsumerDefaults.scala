@@ -1,10 +1,10 @@
 package defaults.kafka
 
 import akka.actor
-import akka.kafka.{ConsumerSettings, ProducerSettings}
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.kafka.{ ConsumerSettings, ProducerSettings }
+import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.ConfigFactory
-import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
+import org.apache.kafka.common.serialization.{ StringDeserializer, StringSerializer }
 
 import scala.concurrent.ExecutionContextExecutor
 

@@ -38,18 +38,21 @@ class EventProcessorWrapper(system: ExtendedActorSystem) extends Extension {
         .withFallback(clusterShardingReferenceConfig)
 
     ClusterSharding(system).start(
-      typeName = typeName,
-      entityProps = EventProcessor.props,
-      settings = ClusterShardingSettings(tunedClusterShardingConfig).withRole("read-model"),
+      typeName        = typeName,
+      entityProps     = EventProcessor.props,
+      settings        = ClusterShardingSettings(tunedClusterShardingConfig).withRole("read-model"),
       extractEntityId = extractEntityId,
-      extractShardId = extractShardId(eventProcessorSettings.parallelism))
+      extractShardId  = extractShardId(eventProcessorSettings.parallelism)
+    )
 
     system.actorOf(
       ClusterSingletonManager.props(
         KeepAlive.props(typeName),
         PoisonPill,
-        ClusterSingletonManagerSettings(system).withRole("read-model")),
-      s"${eventProcessorSettings.id}-keep-alive")
+        ClusterSingletonManagerSettings(system).withRole("read-model")
+      ),
+      s"${eventProcessorSettings.id}-keep-alive"
+    )
   }
 
 }

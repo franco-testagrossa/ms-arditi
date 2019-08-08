@@ -2,13 +2,13 @@ package defaults.kafka
 
 import akka.actor
 import akka.kafka.ProducerSettings
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.{ ActorMaterializer, Materializer }
 import com.typesafe.config.ConfigFactory
 import org.apache.kafka.common.serialization.StringSerializer
 
 import scala.concurrent.ExecutionContextExecutor
 
-object KafkaProducerDefaults  {
+object KafkaProducerDefaults {
   import defaults.akkaDefaults._
 
   private val config = ConfigFactory.parseString(
@@ -19,7 +19,8 @@ object KafkaProducerDefaults  {
        |      port = 2550
        |    }
        |}
-     """.stripMargin)
+     """.stripMargin
+  )
   val system: actor.ActorSystem = actorSystem("KafkaProducer", 2550, config)
 
   implicit val mat: Materializer = ActorMaterializer()(system)

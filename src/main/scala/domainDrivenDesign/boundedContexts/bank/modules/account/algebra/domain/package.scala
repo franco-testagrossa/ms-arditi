@@ -1,6 +1,6 @@
 package domainDrivenDesign.boundedContexts.bank.modules.account.algebra
 
-import domainDrivenDesign.Abstractions.{Aggregate, AggregateCompanion, Event}
+import domainDrivenDesign.Abstractions.{ Aggregate, AggregateCompanion, Event }
 
 package object domain {
   import org.joda.time.DateTime
@@ -8,11 +8,12 @@ package object domain {
 
     case class Balance(amount: BigDecimal = 0)
     case class Account(
-                        id: String,
-                        name: String,
-                        dateOfOpening: DateTime,
-                        dateOfClosing: Option[DateTime] = None,
-                        balance: Balance = Balance()) extends Aggregate
+        id:            String,
+        name:          String,
+        dateOfOpening: DateTime,
+        dateOfClosing: Option[DateTime] = None,
+        balance:       Balance          = Balance()
+    ) extends Aggregate
 
     object Account extends AggregateCompanion[Account] {
       override def empty: Account = Account("id", "name", DateTime.now())

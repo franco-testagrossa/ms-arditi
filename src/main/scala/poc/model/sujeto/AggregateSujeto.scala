@@ -78,26 +78,26 @@ object AggregateSujeto extends ShardedEntity {
 
   final case class StateSujeto private (
                                          saldo:        Double,
-                                         objetoes: Map[String, Objeto]
+                                         objetos: Map[String, Objeto]
                                        ) {
     def +(event: Event): StateSujeto = event match {
       case ObjetoUpdated(objeto: Objeto) =>
         copy(
           saldo        = calculateSaldo(objeto),
-          objetoes = updateObjetos(objeto)
+          objetos = updateObjetos(objeto)
         )
     }
 
     def calculateSaldo(o: Objeto): Double =  saldo + o.saldoObjeto // is a delta with +- sign
     def updateObjetos(o: Objeto): Map[String, Objeto] = {
       val saldoDelta = o.saldoObjeto
-      objetoes.get(o.objetoId).map { ob =>
+      objetos.get(o.objetoId).map { ob =>
         val oldSaldo = ob.saldoObjeto
         val newObjeto = o.copy(saldoObjeto = saldoDelta + oldSaldo)
         newObjeto
       } match {
-        case Some(newObjeto) => objetoes + (newObjeto.objetoId -> newObjeto)
-        case None => objetoes + (o.objetoId -> o)
+        case Some(newObjeto) => objetos + (newObjeto.objetoId -> newObjeto)
+        case None => objetos + (o.objetoId -> o)
       }
     }
   }

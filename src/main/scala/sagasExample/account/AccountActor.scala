@@ -41,30 +41,32 @@ object AccountActor {
   def props(active: Boolean, balance: Long): Props = Props(classOf[AccountActor], active, balance)
 
   final case class AccountState(
-    account: String,
-    active: Boolean,
-    balance: Long,
-    finishedTransactions: Map[Long, Transaction],
-    inFlightTransaction: Map[Long, Transaction]) {
+      account:              String,
+      active:               Boolean,
+      balance:              Long,
+      finishedTransactions: Map[Long, Transaction],
+      inFlightTransaction:  Map[Long, Transaction]
+  ) {
 
     def updated(event: Event): AccountState = event match {
       case MoneyFrozen(id, to, amount) =>
         val transaction = Transaction(id, account, to, amount)
-        copy(balance = balance - amount, inFlightTransaction = inFlightTransaction + (id -> transaction))
+        copy(balance             = balance - amount, inFlightTransaction = inFlightTransaction + (id -> transaction))
 
       case MoneyAdded(id, from, amount) =>
         val transaction = Transaction(id, from, account, amount)
-        copy(balance = balance + amount, finishedTransactions = finishedTransactions + (id -> transaction))
+        copy(balance              = balance + amount, finishedTransactions = finishedTransactions + (id -> transaction))
 
       case TransactionFinished(id) =>
         val transaction = inFlightTransaction(id)
         copy(
           finishedTransactions = finishedTransactions + (id -> transaction),
-          inFlightTransaction = inFlightTransaction - id)
+          inFlightTransaction  = inFlightTransaction - id
+        )
 
       case MoneyUnfrozen(id) =>
         val transaction = inFlightTransaction(id)
-        copy(balance = balance + transaction.amount, inFlightTransaction = inFlightTransaction - id)
+        copy(balance             = balance + transaction.amount, inFlightTransaction = inFlightTransaction - id)
 
     }
   }
@@ -78,9 +80,10 @@ class AccountActor(_active: Boolean, _balance: Long) extends PersistentActor wit
 
   var state = AccountState(
     account = _account,
-    active = _active,
+    active  = _active,
     balance = _balance,
-    Map.empty, Map.empty)
+    Map.empty, Map.empty
+  )
 
   def _account: String = self.path.name
 
@@ -100,13 +103,17 @@ class AccountActor(_active: Boolean, _balance: Long) extends PersistentActor wit
       if (state.finishedTransactions.contains(transactionId)
         || state.inFlightTransaction.contains(transactionId)) {
         sender() ! ConfirmMoneyFrozenSucc(deliveryId)
-      } else if (state.balance < amount) {
+      }
+      else if (state.balance < amount) {
         sender() ! ConfirmMoneyFrozenFail(
           deliveryId,
-          s"insufficient balance, ${_account} have ${state.balance}, which is less than $amount")
-      } else if (!state.active) {
+          s"insufficient balance, ${_account} have ${state.balance}, which is less than $amount"
+        )
+      }
+      else if (!state.active) {
         sender() ! ConfirmMoneyFrozenFail(deliveryId, s"account ${_account} is not active")
-      } else {
+      }
+      else {
         persist(MoneyFrozen(transactionId, to, amount)) { e =>
           updateState(e)
           sender() ! ConfirmMoneyFrozenSucc(deliveryId)
@@ -117,9 +124,11 @@ class AccountActor(_active: Boolean, _balance: Long) extends PersistentActor wit
       log.info(s"received $msg ")
       if (state.finishedTransactions.contains(transactionId)) {
         sender() ! ConfirmMoneyAddedSucc(deliveryId)
-      } else if (!state.active) {
+      }
+      else if (!state.active) {
         sender() ! ConfirmMoneyAddedFail(deliveryId, s"account ${_account} is not active")
-      } else {
+      }
+      else {
         persist(MoneyAdded(transactionId, from, amount)) { e =>
           updateState(e)
           sender() ! ConfirmMoneyAddedSucc(deliveryId)
@@ -130,7 +139,8 @@ class AccountActor(_active: Boolean, _balance: Long) extends PersistentActor wit
       log.info(s"received $msg ")
       if (state.finishedTransactions.contains(transactionId)) {
         sender() ! ConfirmTransactionFinished(deliveryId)
-      } else {
+      }
+      else {
         persist(TransactionFinished(transactionId)) { e =>
           updateState(e)
           sender() ! ConfirmTransactionFinished(deliveryId)
@@ -141,7 +151,8 @@ class AccountActor(_active: Boolean, _balance: Long) extends PersistentActor wit
       log.info(s"received $msg ")
       if (!state.inFlightTransaction.contains(transactionId)) {
         sender() ! ConfirmMoneyUnfrozen(deliveryId)
-      } else {
+      }
+      else {
         persist(MoneyUnfrozen(transactionId)) { e =>
           updateState(e)
           sender() ! ConfirmMoneyUnfrozen(deliveryId)

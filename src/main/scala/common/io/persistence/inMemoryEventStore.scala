@@ -12,7 +12,7 @@ trait inMemoryEventStore extends EventStore[String] {
   override def get(key: String): List[Event[_]] =
     eventLog.get(key).getOrElse(List.empty[Event[_]])
 
-  override def put(key: String, event: Event[_]):  Error \/ List[Event[_]] = { // HELP - WHY DOES SCALAZ NOT WORK HERE
+  override def put(key: String, event: Event[_]): Error \/ List[Event[_]] = { // HELP - WHY DOES SCALAZ NOT WORK HERE
     val currentList = eventLog.getOrElse(key, Nil)
     eventLog += (key -> (event :: currentList))
     currentList.right

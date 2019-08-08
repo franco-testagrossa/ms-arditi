@@ -1,7 +1,7 @@
 package sagas.akka.persistence.adapters
 
-import akka.persistence.journal.{EventAdapter, EventSeq, Tagged}
-import reactivemongo.bson.{BSONDocument, BSONDocumentHandler}
+import akka.persistence.journal.{ EventAdapter, EventSeq, Tagged }
+import reactivemongo.bson.{ BSONDocument, BSONDocumentHandler }
 
 import scala.reflect.ClassTag
 
@@ -16,7 +16,7 @@ abstract class BSONEventAdapter[E: ClassTag] extends EventAdapter {
   // Delegate
   val _tags: Option[Set[String]]
   val handler: BSONDocumentHandler[E]
-  private def bsonRepr(event: E):BSONDocument = handler.write(event)
+  private def bsonRepr(event: E): BSONDocument = handler.write(event)
   private def typeRepr(bson: BSONDocument): E = handler.read(bson)
 
   def fromBson(bson: BSONDocument): E = typeRepr(bson)

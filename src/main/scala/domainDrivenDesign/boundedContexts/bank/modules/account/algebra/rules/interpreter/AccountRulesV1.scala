@@ -4,7 +4,7 @@ import domainDrivenDesign.Abstractions.Event
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.model._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.domain.events._
 import domainDrivenDesign.boundedContexts.bank.modules.account.algebra.rules.algebra.AccountRules
-import scalaz.{Scalaz, \/, ~>}
+import scalaz.{ Scalaz, \/, ~> }
 import Scalaz._
 import common.io.persistence.inMemoryEventStore
 import org.joda.time.DateTime
@@ -68,13 +68,14 @@ object AccountRulesV1 extends AccountRules with inMemoryEventStore {
   def handleCommand[A](e: Event[A]): Task[A] = e match {
 
     case o @ Opened(id, name, odate, _) => Task {
-        validateOpen(id).fold[Account](
+      validateOpen(id).fold[Account](
         err => throw new RuntimeException(err),
         _ => {
           val a = Account(id, name, odate.get)
           put(id, o)
           a
-        })
+        }
+      )
     }
 
     case d @ Debited(no, amount, _) => Task {
@@ -83,7 +84,8 @@ object AccountRulesV1 extends AccountRules with inMemoryEventStore {
         currentState => {
           put(no, d)
           updateState(d, currentState)(no)
-        })
+        }
+      )
     }
 
     case r @ Credited(no, amount, _) => Task {
@@ -92,7 +94,8 @@ object AccountRulesV1 extends AccountRules with inMemoryEventStore {
         currentState => {
           put(no, r)
           updateState(r, currentState)(no)
-        })
+        }
+      )
     }
 
   }

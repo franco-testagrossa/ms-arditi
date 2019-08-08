@@ -1,6 +1,6 @@
 package sagas.mappings.bson_event_adapter
 
-import reactivemongo.bson.{BSONDocumentHandler, Macros}
+import reactivemongo.bson.{ BSONDocumentHandler, Macros }
 import sagas.account.AccountActor.AmountIncreased
 import sagas.akka.persistence.adapters.BSONEventAdapter
 

@@ -39,7 +39,8 @@ class CassandraSessionExtension(system: ActorSystem) extends Extension {
       system.dispatcher,
       log,
       metricsCategory = "sample",
-      init = _ => Future.successful(Done))
+      init = _ => Future.successful(Done)
+    )
   }
 
   val materializer: Materializer = ActorMaterializer()(system)
