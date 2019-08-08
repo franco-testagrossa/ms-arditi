@@ -64,10 +64,10 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
     val expectedSaldo = 1
 
     val requests = for {
-      did <- 1 to N //
-      oblid <- 1 to 3
-      objid <- 1 to 2
       sid <- 1 to 2
+      objid <- 1 to 2
+      oblid <- 1 to 3
+      did <- 1 to N //
     } yield updateObligacion(
       evoId = did.toString,
       objetoId = objid.toString,

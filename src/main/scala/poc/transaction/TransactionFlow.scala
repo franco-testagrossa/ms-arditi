@@ -25,6 +25,8 @@ import poc.model.obligacion.AggregateObligacion.UpdateMovimiento
 import poc.model.sujeto.AggregateSujeto
 import poc.model.sujeto.AggregateSujeto.Objeto
 
+import scala.collection.immutable
+
 
 class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
   import config._
@@ -41,7 +43,7 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
 
   private def transactionalId: String = java.util.UUID.randomUUID().toString
 
-  val g = { o: AggregateObligacion.UpdateSuccess =>
+  val toUpdateObligacion = { o: AggregateObligacion.UpdateSuccess =>
     AggregateObjeto.UpdateObligacion(
       aggregateRoot = o.movimiento.objetoId,
       deliveryId =    o.deliveryId,
@@ -53,14 +55,14 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
       )
     )
   }
-  def f(sujetoId: String) = { o: AggregateObjeto.UpdateSuccess =>
+  def toUpdateObjeto(sujetoId: String, saldoObjeto: Double) = { o: AggregateObjeto.UpdateSuccess =>
     AggregateSujeto.UpdateObjeto(
       aggregateRoot = sujetoId,
       deliveryId = o.deliveryId,
       objeto = Objeto(
         objetoId = o.aggregateRoot,
         sujetoId = sujetoId,
-        saldoObjeto = o.obligacion.saldoObligacion,
+        saldoObjeto = saldoObjeto,
         fechaUltMod = DateTime.now()
       ))
   }
@@ -72,7 +74,7 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
                   (implicit t: Timeout, ec: ExecutionContext): RunnableGraph[DrainingControl[Done]] = {
 
     val consumer = consumerSettings[UpdateObligacion]
-    val producer = producerSettings[Set[AggregateSujeto.UpdateSuccess]]
+    val producer = producerSettings[Seq[AggregateSujeto.UpdateSuccess]]
 
     val transaction = Transactional
       .source(consumer, Subscriptions.topics(SOURCE_TOPIC))
@@ -108,7 +110,7 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
           success: AggregateObligacion.UpdateSuccess
           ) =>
 
-          (objeto ? g(success))
+          (objeto ? toUpdateObligacion(success))
             .mapTo[AggregateObjeto.UpdateSuccess]
             .map(x => (txa, x))
       }
@@ -128,14 +130,17 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
           success: AggregateObjeto.UpdateSuccess
           ) =>
 
-          var a = success.sujetoIds.map {
-            sujetoId =>
-              (sujeto ? f(sujetoId)(success))
-                .mapTo[AggregateSujeto.UpdateSuccess]
-          }
+          var a =
+            success
+              .sujetos
+              .map { case (sid, saldo) => toUpdateObjeto(sid, saldo)(success) }
+              .toSeq
+              .map { request =>
+                (sujeto ? request)
+                  .mapTo[AggregateSujeto.UpdateSuccess]
+              }
+
           Future.sequence(a).map(x => txa -> x)
-
-
       }
       .mapError {
         // the purpose of this recovery is to change the name of the stage in that exception
@@ -148,7 +153,7 @@ class TransactionFlow(config: AppConfig)(implicit system: ActorSystem) {
     val commitedStage = sujetoStage.map {
         case (
           txa: ConsumerMessage.TransactionalMessage[String, UpdateMovimiento],
-          success: Set[AggregateSujeto.UpdateSuccess]
+          success: Seq[AggregateSujeto.UpdateSuccess]
           ) =>
 
           ProducerMessage.single(

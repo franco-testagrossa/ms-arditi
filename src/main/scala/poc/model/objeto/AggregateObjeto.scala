@@ -21,7 +21,7 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
       persist(evt) { e =>
         state += e
         // respond success
-        val response = UpdateSuccess(aggregateRoot, deliveryId, obligacion, state.sujetoIds)
+        val response = UpdateSuccess(aggregateRoot, deliveryId, obligacion, state.sujetos)
         sender() ! response
         val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}][New]"
         log.info(logMsg, persistenceId, obligacion, deliveryId)
@@ -65,7 +65,7 @@ object AggregateObjeto extends ShardedEntity {
           aggregateRoot: String,
           deliveryId: Long,
           obligacion: Obligacion,
-          sujetoIds: Set[String]) extends Response
+          sujetos: Map[String, Double]) extends Response
 
   final case class ObligacionUpdated(obligacion: Obligacion) extends Event {
     def name: String = "ObligacionUpdated"
@@ -82,16 +82,21 @@ object AggregateObjeto extends ShardedEntity {
   final case class StateObjeto private (
       saldo:        Double,
       obligaciones: Map[String, Obligacion],
-      sujetoIds: Set[String]
+      sujetos:      Map[String, Double]
   ) {
     def +(event: Event): StateObjeto = event match {
       case ObligacionUpdated(obligacion: Obligacion) =>
         copy(
           saldo        = calculateSaldo(obligacion),
           obligaciones = updateObligaciones(obligacion),
-          sujetoIds = sujetoIds + obligacion.sujetoId
+          sujetos      = sujetoReport(obligacion)
         )
     }
+
+    def sujetoReport(obligacion: Obligacion): Map[String, Double] =
+        if(sujetos contains obligacion.sujetoId)
+          sujetos + (obligacion.sujetoId -> obligacion.saldoObligacion) // only delta
+        else sujetos + (obligacion.sujetoId -> calculateSaldo(obligacion))
 
     def calculateSaldo(o: Obligacion): Double =  saldo + o.saldoObligacion // is a delta with +- sign
     def updateObligaciones(o: Obligacion): Map[String, Obligacion] = {
@@ -107,7 +112,7 @@ object AggregateObjeto extends ShardedEntity {
     }
   }
   object StateObjeto {
-    def init(): StateObjeto = new StateObjeto(0, Map.empty[String, Obligacion], Set.empty[String])
+    def init(): StateObjeto = new StateObjeto(0, Map.empty[String, Obligacion], Map.empty[String, Double])
   }
 
 }
