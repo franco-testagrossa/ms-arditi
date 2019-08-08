@@ -4,7 +4,7 @@ import akka.actor.Kill
 import akka.util.Timeout
 import org.joda.time.DateTime
 import poc.model.objeto.AggregateObjeto
-import poc.model.objeto.AggregateObjeto.Obligacion
+import poc.model.objeto.AggregateObjeto.{Obligacion, ObligacionUpdated}
 import poc.model.sujeto.AggregateSujeto
 import poc.model.sujeto.AggregateSujeto.Objeto
 import sagas.utils.{ClusterArditiSpec, RestartActorSupervisorFactory}
@@ -45,7 +45,7 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
             if saldo == 0 && obligaciones.isEmpty => true
         }
         expectMsgPF() {
-          case AggregateObjeto.UpdateSuccess(_, 1L, _) => true
+          case AggregateObjeto.UpdateSuccess(_, 1L, _, _) => true
         }
         expectMsgPF() {
           case AggregateObjeto.StateObjeto(saldo, obligaciones, _)
@@ -99,4 +99,5 @@ class AggregateObjetoSpec extends ClusterArditiSpec {
       }
     }
   }
+
 }
