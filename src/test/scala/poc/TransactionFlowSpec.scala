@@ -11,6 +11,7 @@ import org.joda.time.DateTime
 import poc.transaction.TransactionFlow
 import poc.model.objeto.AggregateObjeto
 import poc.model.sujeto.AggregateSujeto
+import poc.model.sujeto.AggregateSujeto.Objeto
 
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -35,7 +36,7 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
         val objetoId = objetoSuccess.aggregateRoot
         val lastUpdated = objetoSuccess.obligacion.fechaUltMod
         val saldo = objetoSuccess.obligacion.saldoObligacion
-        AggregateSujeto.UpdateObjeto(sujetoId, deliveryId, saldo, objetoId, DateTime.now())
+        AggregateSujeto.UpdateObjeto(sujetoId, deliveryId, Objeto(objetoId, sujetoId, saldo, DateTime.now()))
     }
     flow.run()
 

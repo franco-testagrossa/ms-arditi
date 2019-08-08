@@ -3,56 +3,25 @@ package poc.model.sujeto
 import akka.actor.{ActorLogging, ActorSystem, Props}
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
 import akka.persistence.{PersistentActor, SnapshotOffer}
+import common.cqrs.ShardedEntity
 import org.joda.time.DateTime
 import poc.model.ddd._
-
 class AggregateSujeto extends PersistentActor with ActorLogging {
   import AggregateSujeto._
 
-  private val sujetoId = self.path.name
-  override def persistenceId: String = typeName  + "-" + sujetoId
+  private val objetoId = self.path.name
+  override def persistenceId: String = typeName + "-" + objetoId
 
   private var state: StateSujeto = StateSujeto.init()
 
   override def receiveCommand: Receive = {
-    // received old command
-    case UpdateObjeto(_, deliveryId, saldo, objetoId, fechaUltMod)
-      if state.objetos.exists { case (obId, ob) =>
-        obId.equals(objetoId) &&
-          ob.fechaUltMod.isAfter(fechaUltMod)
-      } =>
-      // respond success
-      val response = UpdateSuccess(deliveryId)
-      sender() ! response
-      val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}][Old]"
-      log.info(logMsg, persistenceId, state.objetos(objetoId), deliveryId)
 
-    // update existing object
-    case UpdateObjeto(_, deliveryId, saldo, objetoId, fechaUltMod)
-      if state.objetos.exists { case (obId, ob) =>
-        obId.equals(objetoId) &&
-          ob.fechaUltMod.isBefore(fechaUltMod)
-      } =>
-      val oldObjeto = state.objetos(objetoId)
-      val objeto = oldObjeto.copy(saldoObjeto = oldObjeto.saldoObjeto + saldo, fechaUltMod = fechaUltMod)
+    case UpdateObjeto(aggregateRoot, deliveryId, objeto) =>
       val evt = ObjetoUpdated(objeto)
       persist(evt) { e =>
         state += e
         // respond success
-        val response = UpdateSuccess(deliveryId)
-        sender() ! response
-        val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}][Existing|{}]"
-        log.info(logMsg, persistenceId, objeto, deliveryId)
-      }
-
-    // update not existing object
-    case UpdateObjeto(_, deliveryId, saldo, objetoId, fechaUltMod) =>
-      val objeto = Objeto(objetoId, saldo, fechaUltMod)
-      val evt = ObjetoUpdated(objeto)
-      persist(evt) { e =>
-        state += e
-        // respond success
-        val response = UpdateSuccess(deliveryId)
+        val response = UpdateSuccess(aggregateRoot, deliveryId, objeto)
         sender() ! response
         val logMsg = "[{}][ObjetoUpdated|{}][deliveryId|{}][New]"
         log.info(logMsg, persistenceId, objeto, deliveryId)
@@ -78,64 +47,61 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
   }
 }
 
-object AggregateSujeto {
+object AggregateSujeto extends ShardedEntity {
 
   val typeName = "AggregateSujeto"
 
-  def props(): Props = Props[AggregateSujeto]
+  val props: Props = Props[AggregateSujeto]
 
   final case class UpdateObjeto(
-                           aggregateRoot: String,
-                           deliveryId: Long,
-                           saldo: Double,
-                           objetoId: String,
-                           fechaUltMod: DateTime) extends Command
+                                     aggregateRoot: String,
+                                     deliveryId:    Long,
+                                     objeto:    Objeto
+                               
+                                   ) extends Command
 
   final case class GetState(aggregateRoot: String) extends Query
 
-  final case class UpdateSuccess(deliveryId: Long) extends Response
+  final case class UpdateSuccess(aggregateRoot: String, deliveryId: Long, objeto: Objeto) extends Response
 
   final case class ObjetoUpdated(objeto: Objeto) extends Event {
     def name: String = "ObjetoUpdated"
   }
 
   // State
-  final case class Objeto(objetoId: String,
-                          saldoObjeto: Double,
-                          fechaUltMod: DateTime)
+  final case class Objeto(
+                               objetoId:    String,
+                               sujetoId:        String,
+                               saldoObjeto: Double,
+                               fechaUltMod:     DateTime
+                             )
 
   final case class StateSujeto private (
-                              saldo: Double,
-                              objetos: Map[String, Objeto]
-                            ) {
+                                         saldo:        Double,
+                                         objetoes: Map[String, Objeto]
+                                       ) {
     def +(event: Event): StateSujeto = event match {
       case ObjetoUpdated(objeto: Objeto) =>
         copy(
-          saldo = saldo + objeto.saldoObjeto,
-          objetos = objetos + (objeto.objetoId -> objeto)
+          saldo        = calculateSaldo(objeto),
+          objetoes = updateObjetos(objeto)
         )
+    }
+
+    def calculateSaldo(o: Objeto): Double =  saldo + o.saldoObjeto // is a delta with +- sign
+    def updateObjetos(o: Objeto): Map[String, Objeto] = {
+      val saldoDelta = o.saldoObjeto
+      objetoes.get(o.objetoId).map { ob =>
+        val oldSaldo = ob.saldoObjeto
+        val newObjeto = o.copy(saldoObjeto = saldoDelta + oldSaldo)
+        newObjeto
+      } match {
+        case Some(newObjeto) => objetoes + (newObjeto.objetoId -> newObjeto)
+        case None => objetoes + (o.objetoId -> o)
+      }
     }
   }
   object StateSujeto {
     def init(): StateSujeto = new StateSujeto(0, Map.empty[String, Objeto])
-  }
-
-  // Factory Method for AggregateSujeto
-  def start (implicit system: ActorSystem)= ClusterSharding(system).start(
-    typeName        = typeName,
-    entityProps     = this.props(),
-    settings        = ClusterShardingSettings(system),
-    extractEntityId = extractEntityId,
-    extractShardId  = extractShardId(1)
-  )
-
-  val extractEntityId: ShardRegion.ExtractEntityId = {
-    case qry : Query => (qry.aggregateRoot, qry)
-    case cmd : Command => (cmd.aggregateRoot, cmd)
-  }
-
-  def extractShardId(numberOfShards: Int): ShardRegion.ExtractShardId = {
-    case qry : Query => (qry.aggregateRoot.toLong % numberOfShards).toString
-    case cmd : Command => (cmd.aggregateRoot.toLong % numberOfShards).toString
   }
 }

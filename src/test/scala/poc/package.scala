@@ -1,8 +1,11 @@
 import akka.kafka.testkit.internal.TestFrameworkInterface
 import akka.kafka.testkit.scaladsl.{EmbeddedKafkaLike, KafkaSpec}
+import org.joda.time.DateTime
 import org.scalatest.{FlatSpecLike, Matchers, Suite}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.time.{Millis, Seconds, Span}
+import poc.model.sujeto.AggregateSujeto
+import poc.model.sujeto.AggregateSujeto.Objeto
 
 import scala.concurrent.duration._
 
@@ -46,4 +49,15 @@ package object poc {
     implicit val timeout: Timeout = 10 seconds
 
   }
+
+  def createObjeto(sujetoId: String, deliveryId: Long) =   AggregateSujeto.UpdateObjeto(
+    aggregateRoot = sujetoId,
+    deliveryId = deliveryId,
+    objeto = Objeto(
+      objetoId = "1",
+      sujetoId= sujetoId,
+      saldoObjeto= 2000.0,
+      fechaUltMod=     DateTime.now
+  ))
+
 }

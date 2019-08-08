@@ -1,18 +1,19 @@
 package poc
 
-import scala.concurrent.{ Await, ExecutionContextExecutor }
+import scala.concurrent.{Await, ExecutionContextExecutor}
 import poc.api.ApiRoutes
 import poc.transaction.TransactionFlow
 import poc.model.objeto.AggregateObjeto
 import poc.model.sujeto.AggregateSujeto
-import akka.actor.{ ActorRef, ActorSystem }
+import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{Config, ConfigFactory}
 import org.joda.time.DateTime
+import poc.model.sujeto.AggregateSujeto.Objeto
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -49,7 +50,17 @@ object MainPoc extends App {
     val objetoId = objetoSuccess.aggregateRoot
     val lastUpdated = objetoSuccess.obligacion.fechaUltMod
     val saldo = objetoSuccess.obligacion.saldoObligacion
-    AggregateSujeto.UpdateObjeto(sujetoId, deliveryId, saldo, objetoId, DateTime.now())
+    AggregateSujeto.UpdateObjeto(
+
+      aggregateRoot = sujetoId,
+      deliveryId = deliveryId,
+      objeto = Objeto(
+        objetoId = objetoId,
+        sujetoId=        sujetoId,
+        saldoObjeto= saldo,
+        fechaUltMod=     DateTime.now
+      )
+    )
   }
   flow.run()
 

@@ -1,56 +1,34 @@
 package common.cqrs
 
-import akka.actor.{ ActorRef, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props }
-import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
+import akka.actor.{ActorRef, ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider, Props}
+import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
+import poc.model.ddd.{Command, Query}
 
 import scala.math.abs
 
 trait ShardedEntity {
 
-  val entityProps: Props
+  val props: Props
 
-  object ShardedEntity extends ExtensionId[ShardedEntity] with ExtensionIdProvider {
-    override def lookup: EventProcessorWrapper.type = EventProcessorWrapper
+  val typeName: String
 
-    override def createExtension(system: ExtendedActorSystem) = new ShardedEntity(system)
+  // Factory Method for AggregateObjeto
+  def start(implicit system: ActorSystem) = ClusterSharding(system).start(
+    typeName        = this.typeName,
+    entityProps     = this.props,
+    settings        = ClusterShardingSettings(system),
+    extractEntityId = extractEntityId,
+    extractShardId  = extractShardId(1)
+  )
 
-    case class EntityEnvelope(EntityId: String, payload: Any)
-
-    val extractEntityId: ShardRegion.ExtractEntityId = {
-      case EntityEnvelope(id, msg) => (id, msg)
-    }
-
-    def extractShardId(numberOfShards: Int): ShardRegion.ExtractShardId = {
-      case EntityEnvelope(eventProcessorId, msg) => abs(eventProcessorId.hashCode % numberOfShards).toString
-    }
+  val extractEntityId: ShardRegion.ExtractEntityId = {
+    case qry: Query => (qry.aggregateRoot, qry)
+    case cmd: Command => (cmd.aggregateRoot, cmd)
   }
 
-  class ShardedEntity(system: ExtendedActorSystem) extends Extension {
-
-    import ShardedEntity._
-
-    private val entitySettings = Settings(system).entitySettings
-
-    private val typeName = entitySettings.id
-
-    private val shardCount = entitySettings.shardCount
-
-    def start(): Unit =
-      ClusterSharding(system).start(
-        typeName = typeName,
-        entityProps = entityProps,
-        settings = ClusterShardingSettings(system).withRole("write-model"),
-        extractEntityId = extractEntityId,
-        extractShardId = extractShardId(shardCount))
-
-    def tell(id: String, msg: Any)(implicit sender: ActorRef = ActorRef.noSender): Unit =
-      shardRegion ! EntityEnvelope(id, msg)
-
-    def !(id: String, msg: Any): Unit =
-      tell(id, msg)
-
-    def shardRegion: ActorRef = ClusterSharding(system).shardRegion(typeName)
-
+  def extractShardId(numberOfShards: Int): ShardRegion.ExtractShardId = {
+    case qry: Query => (qry.aggregateRoot.toLong % numberOfShards).toString
+    case cmd: Command => (cmd.aggregateRoot.toLong % numberOfShards).toString
   }
-
 }
+
