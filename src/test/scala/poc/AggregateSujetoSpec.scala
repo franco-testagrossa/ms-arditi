@@ -58,6 +58,46 @@ class AggregateSujetoSpec extends ClusterArditiSpec {
       supervisor.stop()
     }
 
+    "should update sujeto with sharding 2222" in {
+      val objeto = AggregateSujeto.start
+
+      import akka.pattern._
+      implicit val timeout: Timeout = Timeout(10 seconds)
+
+      val N = 10
+
+      val transactions: Future[immutable.IndexedSeq[Any]] = Future.sequence(
+        (1 to N).flatMap {
+          deliveryId =>
+            (1 to 2).map { objetoId =>
+              objeto ? AggregateSujeto.UpdateObjeto(
+                aggregateRoot = "1",
+                deliveryId = deliveryId.toLong,
+                objeto = Objeto(
+                  objetoId = objetoId.toString,
+                  sujetoId = "1",
+                  saldoObjeto = expectedSaldo,
+                  fechaUltMod = DateTime.now
+                ))
+            }
+
+        })
+
+      Await.result(transactions, 10 second)
+
+      val state = (objeto ? AggregateSujeto.GetState("1")).mapTo[AggregateSujeto.StateSujeto]
+      state.foreach { a =>
+        println(s"Expected saldo is: ${expectedSaldo * N * 2}, and saldo is ${a.saldo}")
+        assert(a.saldo == expectedSaldo * N * 2)
+        assert(
+          a.objetos.collect {
+            case (_, o@Objeto(_, "1", saldo, _)) if saldo == expectedSaldo * N * 2 => o
+          }.size == 2
+        )
+      }
+    }
+
+
     "should update sujeto with sharding" in {
       val objeto = AggregateSujeto.start
 
@@ -96,5 +136,7 @@ class AggregateSujetoSpec extends ClusterArditiSpec {
         )
       }
     }
+
+
   }
 }

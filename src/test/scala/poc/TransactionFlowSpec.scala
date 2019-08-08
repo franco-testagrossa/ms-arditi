@@ -25,9 +25,32 @@ import poc.model.obligacion
 
 class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamples) {
 
-  override def sleepAfterProduce: FiniteDuration = 20.seconds
+  def exampleMovimiento(
+                         evoId: String,
+                         objetoId: String,
+                         sujetoId: String) = Movimiento(
+    evoId,
+    objetoId,
+    sujetoId,
+    importe = 1,
+    tipoMovimiento = 'C',
+    fechaUltMod = DateTime.now
+  )
 
-  "TransactionFlow" should "work" in assertAllStagesStopped {
+  def updateObligacion(
+                        evoId: String,
+                        objetoId: String,
+                        sujetoId: String,
+                        aggregateRoot: String,
+                        deliveryId: Long,
+                      ) = UpdateMovimiento(
+    aggregateRoot,
+    deliveryId,
+    movimiento = exampleMovimiento(evoId, objetoId, sujetoId)
+  )
+
+  def transactionFlowTest(requests: immutable.Seq[UpdateMovimiento], N: Int):
+  Future[(AggregateSujeto.StateSujeto, AggregateSujeto.StateSujeto)] = {
     import scala.collection.JavaConverters._
     val config: Config = ConfigFactory.parseMap(Map("kafka.brokers" -> bootstrapServers).asJava)
     val appConfig = new AppConfig(config)
@@ -36,45 +59,10 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
     val sujetoRef: ActorRef = AggregateSujeto.start
 
 
-    def exampleMovimiento(
-                           evoId: String,
-                           objetoId: String,
-                           sujetoId: String) = Movimiento(
-      evoId,
-      objetoId,
-      sujetoId,
-      importe = 1,
-      tipoMovimiento = 'C',
-      fechaUltMod = DateTime.now
-    )
 
-    def updateObligacion(
-                          evoId: String,
-                          objetoId: String,
-                          sujetoId: String,
-                          aggregateRoot: String,
-                          deliveryId: Long,
-                        ) = UpdateMovimiento(
-      aggregateRoot: String,
-      deliveryId: Long,
-      movimiento = exampleMovimiento(evoId, objetoId, sujetoId)
-    )
 
-    val N = 10
-    val expectedSaldo = 1
 
-    val requests = for {
-      sid <- 1 to 2
-      objid <- 1 to 2
-      oblid <- 1 to 3
-      did <- 1 to N //
-    } yield updateObligacion(
-      evoId = did.toString,
-      objetoId = objid.toString,
-      sujetoId = sid.toString,
-      aggregateRoot = oblid.toString,
-      deliveryId = did.toLong
-    )
+
 
     val txFlow = new TransactionFlow(appConfig)
 
@@ -95,25 +83,91 @@ class TransactionFlowSpec extends DocsSpecBase(KafkaPorts.ScalaTransactionsExamp
     control.drainAndShutdown()
 
 
-    val state = (objetoRef ? AggregateObjeto.GetState("1")).mapTo[AggregateObjeto.StateObjeto]
-    state.foreach{ s =>
-      println(s"Expected saldo is: ${s}")
-    }
-    val state2 = (objetoRef ? AggregateObjeto.GetState("2")).mapTo[AggregateObjeto.StateObjeto]
-    state2.foreach{ s =>
-      println(s"Expected saldo is: ${s}")
-    }
 
-    val state3 = (sujetoRef ? AggregateSujeto.GetState("1")).mapTo[AggregateSujeto.StateSujeto]
-    state3.foreach{ s =>
-      println(s"Expected saldo is: ${s}")
-    }
-    val state4 = (sujetoRef ? AggregateSujeto.GetState("2")).mapTo[AggregateSujeto.StateSujeto]
-    state4.foreach{ s =>
-      println(s"Expected saldo is: ${s}")
+    for {
+      a <- (sujetoRef ? AggregateSujeto.GetState("1")).mapTo[AggregateSujeto.StateSujeto]
+      b <- (sujetoRef ? AggregateSujeto.GetState("2")).mapTo[AggregateSujeto.StateSujeto]
+    } yield (a, b)
+
+
+
+
+  }
+
+  override def sleepAfterProduce: FiniteDuration = 20.seconds
+
+
+
+
+
+
+  "TransactionFlow" should "sujeto- objeto- obligacion" in assertAllStagesStopped {
+    val requests: immutable.Seq[UpdateMovimiento] = for {
+      sujeto <- 1 to 2
+      objeto <- 1 to 2
+      obligacion <- 1 to 3
+    } yield updateObligacion(
+      evoId = "1",
+      objetoId = objeto.toString,
+      sujetoId = sujeto.toString,
+      aggregateRoot = obligacion.toString,
+      deliveryId = 1L
+    )
+
+    val results = transactionFlowTest(requests, 1)
+    results.foreach{
+      case (a,b) =>
+        println(s"Result: a is: ${a}")
+        println(s"Result: b is: ${b}")
+        assert(a.saldo == b.saldo)
     }
   }
 
 
+  "TransactionFlow" should "objeto- sujeto -obligacion" in assertAllStagesStopped {
+    val requests: immutable.Seq[UpdateMovimiento] = for {
+      objeto <- 1 to 2
+      sujeto <- 1 to 2
+      obligacion <- 1 to 3
+    } yield updateObligacion(
+      evoId = "1",
+      objetoId = objeto.toString,
+      sujetoId = sujeto.toString,
+      aggregateRoot = obligacion.toString,
+      deliveryId = 1L
+    )
+
+    val results = transactionFlowTest(requests, 1)
+    results.foreach{
+      case (a,b) =>
+        println(s"Result: a is: ${a}")
+        println(s"Result: b is: ${b}")
+        assert(a.saldo == b.saldo)
+    }
+  }
+
+
+  "TransactionFlow" should "objeto- obligacion - sujeto" in assertAllStagesStopped {
+    val requests: immutable.Seq[UpdateMovimiento] = for {
+      objeto <- 1 to 5
+      obligacion <- 1 to 5
+      sujeto <- 1 to 5
+    } yield updateObligacion(
+      evoId = "1",
+      objetoId = objeto.toString,
+      sujetoId = sujeto.toString,
+      aggregateRoot = obligacion.toString,
+      deliveryId = 1L
+    )
+    println(requests)
+
+    val results = transactionFlowTest(requests, 1)
+    results.foreach{
+      case (a,b) =>
+        println(s"Result: a is: ${a}")
+        println(s"Result: b is: ${b}")
+        assert(a.saldo === b.saldo)
+    }
+  }
 
 }

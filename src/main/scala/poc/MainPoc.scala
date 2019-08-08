@@ -1,17 +1,17 @@
 package poc
 
-import scala.concurrent.{Await, ExecutionContextExecutor}
+import scala.concurrent.{ Await, ExecutionContextExecutor }
 import poc.api.ApiRoutes
 import poc.transaction.TransactionFlow
 import poc.model.objeto.AggregateObjeto
 import poc.model.sujeto.AggregateSujeto
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ ActorRef, ActorSystem }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.joda.time.DateTime
 import poc.model.sujeto.AggregateSujeto.Objeto
 

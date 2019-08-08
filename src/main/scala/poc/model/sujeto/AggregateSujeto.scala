@@ -1,8 +1,8 @@
 package poc.model.sujeto
 
-import akka.actor.{ActorLogging, ActorSystem, Props}
-import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.actor.{ ActorLogging, ActorSystem, Props }
+import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
+import akka.persistence.{ PersistentActor, SnapshotOffer }
 import common.cqrs.ShardedEntity
 import org.joda.time.DateTime
 import poc.model.ddd._
@@ -19,6 +19,10 @@ class AggregateSujeto extends PersistentActor with ActorLogging {
     case UpdateObjeto(aggregateRoot, deliveryId, objeto) =>
       val evt = ObjetoUpdated(objeto)
       persist(evt) { e =>
+
+        //val objetosToSaldos: Map[String, Double] = state.objetos.map(o => (o._1 -> o._2.saldoObjeto))
+        //val b = Console.WHITE
+        //println(s"$b Sujeto ids:${if (state.objetos.size > 1) state.objetos.map(p => p._2.sujetoId)}: ${objetosToSaldos} \t\t\t\t\t\t\t - before: ${state.saldo}: " + s" - after: ${(state.+(e).saldo)}")
         state += e
         // respond success
         val response = UpdateSuccess(aggregateRoot, deliveryId, objeto)
@@ -54,11 +58,11 @@ object AggregateSujeto extends ShardedEntity {
   val props: Props = Props[AggregateSujeto]
 
   final case class UpdateObjeto(
-                                     aggregateRoot: String,
-                                     deliveryId:    Long,
-                                     objeto:    Objeto
-                               
-                                   ) extends Command
+      aggregateRoot: String,
+      deliveryId:    Long,
+      objeto:        Objeto
+
+  ) extends Command
 
   final case class GetState(aggregateRoot: String) extends Query
 
@@ -70,25 +74,25 @@ object AggregateSujeto extends ShardedEntity {
 
   // State
   final case class Objeto(
-         objetoId:    String,
-         sujetoId:    String,
-         saldoObjeto: Double,
-         fechaUltMod:     DateTime
-       )
+      objetoId:    String,
+      sujetoId:    String,
+      saldoObjeto: Double,
+      fechaUltMod: DateTime
+  )
 
   final case class StateSujeto private (
-                                         saldo:        Double,
-                                         objetos: Map[String, Objeto]
-                                       ) {
+      saldo:   Double,
+      objetos: Map[String, Objeto]
+  ) {
     def +(event: Event): StateSujeto = event match {
       case ObjetoUpdated(objeto: Objeto) =>
         copy(
-          saldo        = calculateSaldo(objeto),
+          saldo   = calculateSaldo(objeto),
           objetos = updateObjetos(objeto)
         )
     }
 
-    def calculateSaldo(o: Objeto): Double =  saldo + o.saldoObjeto // is a delta with +- sign
+    def calculateSaldo(o: Objeto): Double = saldo + o.saldoObjeto // is a delta with +- sign
     def updateObjetos(o: Objeto): Map[String, Objeto] = {
       val saldoDelta = o.saldoObjeto
       objetos.get(o.objetoId).map { ob =>

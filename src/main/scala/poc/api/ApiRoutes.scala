@@ -1,7 +1,7 @@
 package poc.api
 
 import akka.actor.ActorRef
-import akka.http.scaladsl.server.Directives.{complete, get, path, _}
+import akka.http.scaladsl.server.Directives.{ complete, get, path, _ }
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import akka.util.Timeout
@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext
 import poc.model.objeto.AggregateObjeto
 import poc.model.objeto.AggregateObjeto.UpdateObligacion
 import poc.model.sujeto.AggregateSujeto
-import poc.model.sujeto.AggregateSujeto.{Objeto, UpdateObjeto}
+import poc.model.sujeto.AggregateSujeto.{ Objeto, UpdateObjeto }
 
 class ApiRoutes(objetoService: ActorRef, sujetoService: ActorRef)
   (implicit timeout: Timeout, ec: ExecutionContext) {
@@ -74,19 +74,19 @@ class ApiRoutes(objetoService: ActorRef, sujetoService: ActorRef)
             (sujetoService ?
               AggregateSujeto.UpdateObjeto(
                 aggregateRoot = "1",
-                deliveryId = 1L,
-                objeto = Objeto(
-                  objetoId = "1",
-                  sujetoId=        "1",
-                  saldoObjeto= 2000.0,
-                  fechaUltMod=     DateTime.now
+                deliveryId    = 1L,
+                objeto        = Objeto(
+                  objetoId    = "1",
+                  sujetoId    = "1",
+                  saldoObjeto = 2000.0,
+                  fechaUltMod = DateTime.now
+                )
               ))
-            )
-            .mapTo[AggregateSujeto.UpdateSuccess]
-            .map { stateSujeto =>
-              s"success : $stateSujeto"
-            }
-            .recover { case e: Exception => s"Exception : $e" }
+              .mapTo[AggregateSujeto.UpdateSuccess]
+              .map { stateSujeto =>
+                s"success : $stateSujeto"
+              }
+              .recover { case e: Exception => s"Exception : $e" }
           }
         }
       )

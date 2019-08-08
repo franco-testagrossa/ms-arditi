@@ -1,8 +1,8 @@
 package poc.model.objeto
 
-import akka.actor.{ActorLogging, ActorSystem, Props}
-import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings, ShardRegion}
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.actor.{ ActorLogging, ActorSystem, Props }
+import akka.cluster.sharding.{ ClusterSharding, ClusterShardingSettings, ShardRegion }
+import akka.persistence.{ PersistentActor, SnapshotOffer }
 import common.cqrs.ShardedEntity
 import org.joda.time.DateTime
 import poc.model.ddd._
@@ -19,12 +19,25 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
     case UpdateObligacion(aggregateRoot, deliveryId, obligacion) =>
       val evt = ObligacionUpdated(obligacion)
       persist(evt) { e =>
+
+        e match {
+          case ObligacionUpdated(obligacion: Obligacion) =>
+
+            log.error("\n\n\n\n")
+            log.error("SALDO" + state.saldo.toString)
+            log.error(obligacion.toString)
+            log.error("sujetoReport" + state.sujetoReport(obligacion).toString)
+
+        }
         state += e
+
+        log.error("ESTADO RESULTANTE" + state.toString)
+        log.error("\n\n\n\n")
         // respond success
         val response = UpdateSuccess(aggregateRoot, deliveryId, obligacion, state.sujetos)
         sender() ! response
         val logMsg = "[{}][ObligacionUpdated|{}][deliveryId|{}][New]"
-        log.info(logMsg, persistenceId, obligacion, deliveryId)
+        log.error(logMsg, persistenceId, obligacion, deliveryId)
       }
 
     case AggregateObjeto.GetState(_) =>
@@ -40,7 +53,7 @@ class AggregateObjeto extends PersistentActor with ActorLogging {
 
   override def receiveRecover: Receive = {
     case evt: Event =>
-      log.info(s"replay event: $evt")
+      log.error(s"replay event: $evt")
       state += evt
     case SnapshotOffer(_, snapshot: StateObjeto) =>
       state = snapshot
@@ -62,10 +75,11 @@ object AggregateObjeto extends ShardedEntity {
   final case class GetState(aggregateRoot: String) extends Query
 
   final case class UpdateSuccess(
-          aggregateRoot: String,
-          deliveryId: Long,
-          obligacion: Obligacion,
-          sujetos: Map[String, Double]) extends Response
+      aggregateRoot: String,
+      deliveryId:    Long,
+      obligacion:    Obligacion,
+      sujetos:       Map[String, Double]
+  ) extends Response
 
   final case class ObligacionUpdated(obligacion: Obligacion) extends Event {
     def name: String = "ObligacionUpdated"
@@ -94,11 +108,15 @@ object AggregateObjeto extends ShardedEntity {
     }
 
     def sujetoReport(obligacion: Obligacion): Map[String, Double] =
-        if(sujetos contains obligacion.sujetoId)
-          sujetos + (obligacion.sujetoId -> obligacion.saldoObligacion) // only delta
-        else sujetos + (obligacion.sujetoId -> calculateSaldo(obligacion))
+      if (sujetos contains obligacion.sujetoId)
+        sujetos.map { case (suj, saldo) =>
+          (suj, obligacion.saldoObligacion) // only delta
+        }
+      else sujetos.map { case (suj, saldo) =>
+        (suj, obligacion.saldoObligacion) // only delta
+      } + (obligacion.sujetoId -> calculateSaldo(obligacion))
 
-    def calculateSaldo(o: Obligacion): Double =  saldo + o.saldoObligacion // is a delta with +- sign
+    def calculateSaldo(o: Obligacion): Double = saldo + o.saldoObligacion // is a delta with +- sign
     def updateObligaciones(o: Obligacion): Map[String, Obligacion] = {
       val saldoDelta = o.saldoObligacion
       obligaciones.get(o.obligacionId).map { ob =>
