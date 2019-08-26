@@ -1,23 +1,31 @@
-<configuration debug="true">
-   <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
-       <syslogHost>localhost</syslogHost>
-       <facility>SYSLOG</facility>
-       <suffixPattern>scala-basic-template: %logger %msg</suffixPattern>
-       <throwableExcluded>true</throwableExcluded>
-   </appender>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger  %msg%n%rEx</pattern>
+        </encoder>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>target/tests-it.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>%d{ISO8601} %-5level [%-20.20thread] %logger  %msg%n%rEx</pattern>
+        </encoder>
+    </appender>
 
-   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-       <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-           <pattern>
-               scala-basic-template: %logger %msg%n
-           </pattern>
-       </encoder>
-   </appender>
 
-   <!-- Setting the root level of SYSLOG to INFO -->
-   <root level="INFO">
-       <appender-ref ref="SYSLOG"/>
-       <appender-ref ref="STDOUT"/>
-   </root>
+    <logger name="akka" level="ERROR"/>
+    <logger name="akka.kafka" level="ERROR"/>
 
+    <logger name="org.apache.zookeeper" level="ERROR"/>
+    <logger name="org.I0Itec.zkclient" level="ERROR"/>
+
+    <logger name="kafka" level="ERROR"/>
+    <logger name="org.apache.kafka" level="ERROR"/>
+    <logger name="org.apache.kafka.common.utils.AppInfoParser" level="ERROR"/>
+    <logger name="org.apache.kafka.clients.NetworkClient" level="ERROR"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="STDOUT" />
+    </root>
 </configuration>
