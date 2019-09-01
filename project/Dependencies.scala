@@ -111,10 +111,8 @@ object Dependencies {
         
         private lazy val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
         private lazy val kryo = "com.twitter" %% "chill-akka"  % kryoVersion
-        private lazy val joda1=  "joda-time"  % "joda-time"    % "2.9.1"
-        private lazy val joda2 =  "org.joda"   % "joda-convert" % "1.8.1"
 
-        override def modules: Seq[ModuleID] = logback :: kryo :: joda1 :: joda2 :: Nil
+        override def modules: Seq[ModuleID] = logback :: kryo :: Nil
     }
 
     // Projects

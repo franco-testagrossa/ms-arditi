@@ -4,13 +4,6 @@
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger  %msg%n%rEx</pattern>
         </encoder>
     </appender>
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>target/tests-it.log</file>
-        <append>false</append>
-        <encoder>
-            <pattern>%d{ISO8601} %-5level [%-20.20thread] %logger  %msg%n%rEx</pattern>
-        </encoder>
-    </appender>
 
 
     <logger name="akka" level="ERROR"/>
@@ -25,7 +18,6 @@
     <logger name="org.apache.kafka.clients.NetworkClient" level="ERROR"/>
 
     <root level="DEBUG">
-        <appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

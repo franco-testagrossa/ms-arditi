@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ms-arditi
+  name: ms_arditi
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: ms-arditi-cluster
+      app: ms_arditi-cluster
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -15,15 +15,15 @@ spec:
   template:
     metadata:
       labels:
-        app: ms-arditi-cluster
+        app: ms_arditi-cluster
     spec:
       terminationGracePeriodSeconds: 30
       restartPolicy: Always
-      serviceAccountName: ms-arditi-cluster
+      serviceAccountName: ms_arditi-cluster
       containers:
-        - image: arditi/ms_arditi:1.0
+        - image: ms_arditi/ms_arditi:1.0
           imagePullPolicy: IfNotPresent
-          name: ms-arditi-cluster
+          name: ms_arditi-cluster
           env:
             - name: HOSTNAME
               valueFrom:
